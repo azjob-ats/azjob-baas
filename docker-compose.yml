@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  boot_app:
+    container_name: boot_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SERVER_PORT: 8080
+      TZ: "America/Sao_Paulo"
+    ports:
+      - "8080:8080"
+    networks:
+      - docker-network
+    restart: always
+
+networks:
+  docker-network:
+    driver: bridge

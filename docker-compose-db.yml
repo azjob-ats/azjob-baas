@@ -1,0 +1,43 @@
+#http://localhost:16543/login?next=%2F
+#docker run -e POSTGRES_PASSWORD=admin -e POSTGRES_USER=admin -dp 15432:5432 f0ff6ef79497
+#docker-compose -f docker-compose-db.yml up -d
+version: '3'
+
+services:
+  postgres-db:
+    container_name: postgres-db
+    image: postgres
+    environment:
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+      POSTGRES_DB: "educando"
+      TZ: "America/Sao_Paulo"
+    ports:
+      - "15432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - docker-network
+    restart: always
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+      TZ: "America/Sao_Paulo"
+    ports:
+      - "16543:80"
+    depends_on:
+      - postgres-db
+    networks:
+      - docker-network
+    restart: always
+
+networks:
+  docker-network:
+    driver: bridge
+
+

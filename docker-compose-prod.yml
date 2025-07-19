@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  boot_app:
+    container_name: boot_app
+    image: azjob/boot_app:latest
+    environment:
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: prod
+      TZ: "America/Sao_Paulo"
+      DB_URL: "jdbc:postgresql://db.fskaqoireegzddnurnhk.supabase.co:5432/postgres"
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "203327.Ss"
+    ports:
+      - "8081:8080"
+    networks:
+      - docker-network
+    restart: always
+
+networks:
+  docker-network:
+    driver: bridge

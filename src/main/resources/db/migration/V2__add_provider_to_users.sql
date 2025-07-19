@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN provider VARCHAR(50) NOT NULL DEFAULT 'google.com';
