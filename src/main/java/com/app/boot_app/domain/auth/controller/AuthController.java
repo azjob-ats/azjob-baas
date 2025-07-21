@@ -39,8 +39,8 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<AuthResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO) {
         AuthResponseDTO result = authService.signUp(signUpRequestDTO);
-        return Response.ok(messageSource.getMessage("auth.user.created", null, LocaleContextHolder.getLocale()),
-                result);
+        String message = messageSource.getMessage("auth.user.created", null, LocaleContextHolder.getLocale());
+        return Response.ok(message, result);
     }
 
     @PostMapping("/sign-in-with-email-and-password")
