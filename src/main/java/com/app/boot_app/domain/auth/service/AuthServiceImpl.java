@@ -11,6 +11,7 @@ import com.app.boot_app.domain.auth.dto.AuthResponseDTO;
 import com.app.boot_app.domain.auth.dto.RefreshTokenDTO;
 import com.app.boot_app.domain.auth.dto.SignInRequestDTO;
 import com.app.boot_app.domain.auth.dto.SignUpRequestDTO;
+import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 import com.app.boot_app.domain.auth.dto.VerifyAccountRequestDTO;
 import com.app.boot_app.domain.auth.entity.Group;
 import com.app.boot_app.domain.auth.entity.GroupAuditLog;
@@ -28,6 +29,7 @@ import com.app.boot_app.domain.auth.exception.BadRequestException;
 import com.app.boot_app.domain.auth.exception.ConflictException;
 import com.app.boot_app.domain.auth.exception.InternalServerErrorException;
 import com.app.boot_app.domain.auth.exception.NotFoundException;
+import com.app.boot_app.domain.auth.mapper.UserMapper;
 import com.app.boot_app.domain.auth.repository.GroupMemberRepository;
 import com.app.boot_app.domain.auth.repository.GroupRepository;
 import com.app.boot_app.domain.auth.repository.PinCodeRepository;
@@ -35,6 +37,7 @@ import com.app.boot_app.domain.auth.repository.RoleRepository;
 import com.app.boot_app.domain.auth.repository.UserRepository;
 import com.app.boot_app.shared.response.ApiResponse;
 import com.app.boot_app.shared.service.EmailService;
+import com.app.boot_app.shared.util.JwtExtract;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
@@ -53,8 +56,10 @@ public class AuthServiceImpl implements AuthService {
     private final GroupMemberRepository groupMemberRepository;
     private final GroupAuditLogService groupAuditLogService;
     private final MessageSource messageSource;
+    private final UserMapper userMapper;
+    
 
-    public AuthServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
+    public AuthServiceImpl(UserMapper userMapper,UserRepository userRepository, RoleRepository roleRepository,
             PinCodeRepository pinCodeRepository, FirebaseAuth firebaseAuth, EmailService emailService,
             PinCodeService pinCodeService, GroupRepository groupRepository, GroupMemberRepository groupMemberRepository,
             GroupAuditLogService groupAuditLogService, MessageSource messageSource) {
@@ -68,6 +73,7 @@ public class AuthServiceImpl implements AuthService {
         this.groupMemberRepository = groupMemberRepository;
         this.groupAuditLogService = groupAuditLogService;
         this.messageSource = messageSource;
+         this.userMapper = userMapper;
     }
 
     @Override
@@ -309,29 +315,21 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void forgotPassword(String email) {
-        User user = userRepository.findByEmail(email)
+    public Boolean forgotPassword(String email) {
+        userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("user-not-found",
                         messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
 
-        // Generate a password reset link/token from Firebase
-        try {
-            String link = firebaseAuth.generatePasswordResetLink(email);
-            // TODO: Send email with reset link
-            String emailText = messageSource.getMessage("auth.forgot.password.email.body",
-                    new Object[] { user.getFirstName(), link }, LocaleContextHolder.getLocale());
-            emailService.sendEmail(user.getEmail(), messageSource.getMessage("auth.forgot.password.email.subject", null,
-                    LocaleContextHolder.getLocale()), emailText);
+        sendVerificationCode(email);
+        return true;
+    }
 
-        } catch (FirebaseAuthException e) {
-            throw new InternalServerErrorException("password-reset-link-error",
-                    messageSource.getMessage("auth.password.reset.link.error", new Object[] { e.getMessage() },
-                            LocaleContextHolder.getLocale()));
-        }
+    public void validatePinForUpdatePassword(){
+        
     }
 
     @Override
-    public void resetPassword(String token, String newPassword) {
+    public Boolean resetPassword(String token, String newPassword) {
         // In a real application, you would verify the token and then update the
         // password.
         // Firebase Admin SDK does not directly support verifying password reset tokens
@@ -351,6 +349,8 @@ public class AuthServiceImpl implements AuthService {
             user.setPassword("********"); // Update local password representation if needed
             userRepository.save(user);
 
+            return true;
+
         } catch (FirebaseAuthException e) {
             throw new ConflictException("invalid-or-expired-token", messageSource.getMessage(
                     "auth.invalid.or.expired.token", new Object[] { e.getMessage() }, LocaleContextHolder.getLocale()));
@@ -368,6 +368,26 @@ public class AuthServiceImpl implements AuthService {
            throw new ConflictException("invalid-credentials",
                     messageSource.getMessage("auth.invalid.credentials", null, LocaleContextHolder.getLocale()));
 
+        }
+    }
+
+    @Override
+    public UserResponseDTO getUserByToken(String token) {
+
+        String email = JwtExtract.extractEmail(token);
+        try {
+                UserRecord userFirebase = FirebaseAuth.getInstance().getUserByEmail(email);
+
+               User user = userRepository.findByEmail(userFirebase.getEmail())
+                    .orElseThrow(() -> new NotFoundException("user-not-found",
+                            messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
+
+
+            return  userMapper.toResponse(user);
+
+        } catch (FirebaseAuthException e) {
+           throw new ConflictException("invalid-credentials",
+                    messageSource.getMessage("auth.invalid.credentials", null, LocaleContextHolder.getLocale()));
         }
     }
 }

@@ -3,6 +3,7 @@ package com.app.boot_app.domain.auth.service;
 import com.app.boot_app.domain.auth.dto.AuthResponseDTO;
 import com.app.boot_app.domain.auth.dto.SignInRequestDTO;
 import com.app.boot_app.domain.auth.dto.SignUpRequestDTO;
+import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 import com.app.boot_app.domain.auth.dto.VerifyAccountRequestDTO;
 
 public interface AuthService {
@@ -12,6 +13,7 @@ public interface AuthService {
     Boolean sendVerificationCode(String email);
     boolean resendVerificationCode(String email);
     AuthResponseDTO refreshToken(String refreshToken);
-    void forgotPassword(String email);
-    void resetPassword(String token, String newPassword);
+    Boolean forgotPassword(String email);
+    Boolean resetPassword(String token, String newPassword);
+    UserResponseDTO getUserByToken(String token);
 }

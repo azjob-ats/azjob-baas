@@ -3,6 +3,7 @@ package com.app.boot_app.domain.auth.controller;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,11 +17,14 @@ import com.app.boot_app.domain.auth.dto.ResetPasswordRequestDTO;
 import com.app.boot_app.domain.auth.dto.SendVerificationCodeRequestDTO;
 import com.app.boot_app.domain.auth.dto.SignInRequestDTO;
 import com.app.boot_app.domain.auth.dto.SignUpRequestDTO;
+import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 import com.app.boot_app.domain.auth.dto.VerifyAccountRequestDTO;
+import com.app.boot_app.domain.auth.exception.BadRequestException;
 import com.app.boot_app.domain.auth.service.AuthService;
 import com.app.boot_app.shared.response.ApiResponse;
 import com.app.boot_app.shared.response.Response;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -33,6 +37,29 @@ public class AuthController {
     public AuthController(AuthService authService, MessageSource messageSource) {
         this.authService = authService;
         this.messageSource = messageSource;
+    }
+
+    @GetMapping("/user")
+    public ApiResponse<UserResponseDTO> user(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new BadRequestException(
+                "auth/token-invalid",
+                messageSource.getMessage(
+                    "auth.token.missing-or-invalid", 
+                    null,
+                    LocaleContextHolder.getLocale()
+                )
+            );
+        }
+
+        String idToken = authorizationHeader.substring(7);
+        System.out.println(idToken);
+        UserResponseDTO result = authService.getUserByToken(idToken);
+        
+        String message = messageSource.getMessage("auth.user.found-with-success", null, LocaleContextHolder.getLocale());
+        return Response.ok(message, result);
     }
 
     @PostMapping("/sign-up-with-email-and-password")
@@ -85,18 +112,20 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ApiResponse<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO request) {
-        authService.forgotPassword(request.getEmail());
+    public ApiResponse<Boolean> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO request) {
+        Boolean result = authService.forgotPassword(request.getEmail());
         return Response.ok(
-                messageSource.getMessage("auth.password.reset.link.sent", null, LocaleContextHolder.getLocale()), null);
+                messageSource.getMessage("auth.password.reset.link.sent", null, LocaleContextHolder.getLocale()), 
+                result
+            );
     }
 
     @PostMapping("/reset-password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ApiResponse<?> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
-        authService.resetPassword(request.getToken(), request.getNewPassword());
-        return Response.ok(messageSource.getMessage("auth.password.reset", null, LocaleContextHolder.getLocale()),
-                null);
+    public ApiResponse<Boolean> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
+        Boolean result = authService.resetPassword(request.getToken(), request.getNewPassword());
+        return Response.ok(
+            messageSource.getMessage("auth.password.reset", null, LocaleContextHolder.getLocale()),
+            result
+        );
     }
 }

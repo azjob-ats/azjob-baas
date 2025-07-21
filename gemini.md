@@ -77,6 +77,7 @@ src/main/java/com/app/boot_app/
 │   │   ├── exception/
 │   │   ├── repository/
 │   │   ├── security/
+│   │   ├── mapper/
 │   │   └── service/
 │   ├── todo/
 │   │   ├── constant/
@@ -87,6 +88,7 @@ src/main/java/com/app/boot_app/
 │   │   ├── exception/
 │   │   ├── repository/
 │   │   ├── security/
+│   │   ├── mapper/
 │   │   └── service/
 └── shared/
     ├── exception/
