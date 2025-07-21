@@ -33,6 +33,7 @@ import com.app.boot_app.domain.auth.repository.GroupRepository;
 import com.app.boot_app.domain.auth.repository.PinCodeRepository;
 import com.app.boot_app.domain.auth.repository.RoleRepository;
 import com.app.boot_app.domain.auth.repository.UserRepository;
+import com.app.boot_app.shared.response.ApiResponse;
 import com.app.boot_app.shared.service.EmailService;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.firebase.auth.FirebaseAuth;
@@ -89,7 +90,8 @@ public class AuthServiceImpl implements AuthService {
             User user = new User();
             user.setProvider(ProviderName.EMAIL_AND_PASSWORD_BY_GOOGLE.name());
             user.setEmail(signUpRequestDTO.getEmail());
-            user.setPassword(signUpRequestDTO.getPassword());
+            user.setPassword("******");
+            user.setIdProvider(userRecord.getUid());
             user.setFirstName(signUpRequestDTO.getFirstName());
             user.setLastName(signUpRequestDTO.getLastName());
             user.setUsername(createUsername(signUpRequestDTO.getEmail()));
@@ -107,7 +109,7 @@ public class AuthServiceImpl implements AuthService {
                     });
             user.setRole(defaultRole);
 
-            userRepository.save(user);
+           User registeredUser = userRepository.save(user);
 
             Group defaultGroup = groupRepository.findByName(GroupName.DEFAULT_GROUP.getName())
                     .orElseGet(() -> {
@@ -142,14 +144,6 @@ public class AuthServiceImpl implements AuthService {
                                                                                                                   // String
             groupAuditLogService.createAuditLog(auditLog);
 
-            String pinCode = pinCodeService.generateAndSavePinCode(user);
-
-            String emailText = messageSource.getMessage("auth.signup.email.body",
-                    new Object[] { user.getFirstName(), pinCode }, LocaleContextHolder.getLocale());
-
-            emailService.sendEmail(user.getEmail(), messageSource.getMessage("auth.signup.email.subject",
-                    new Object[] { pinCode }, LocaleContextHolder.getLocale()), emailText);
-
             Map<String, Object> claims = new HashMap<>();
             claims.put("email", user.getEmail());
 
@@ -162,6 +156,8 @@ public class AuthServiceImpl implements AuthService {
                .userId(user.getId())
                .build();
 
+        
+                sendVerificationCode(registeredUser.getEmail());
             return AuthResponseDTO.builder()
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
@@ -266,7 +262,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void sendVerificationCode(String email) {
+    public Boolean sendVerificationCode(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("user-not-found",
                         messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
@@ -279,13 +275,17 @@ public class AuthServiceImpl implements AuthService {
         emailService.sendEmail(user.getEmail(),
                 messageSource.getMessage("auth.verification.code.email.subject", null, LocaleContextHolder.getLocale()),
                 emailText);
+
+        return true;
     }
 
     @Override
-    public void resendVerificationCode(String email) {
+    public boolean resendVerificationCode(String email) {
         // A lógica é a mesma que sendVerificationCode, invalidando o anterior (o que já
         // acontece ao gerar um novo)
         sendVerificationCode(email);
+
+        return true;
     }
 
     @Override

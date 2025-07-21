@@ -54,24 +54,27 @@ public class AuthController {
     public ApiResponse<AuthResponseDTO> verifyAccount(
             @Valid @RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
         AuthResponseDTO result = authService.verifyAccount(verifyAccountRequestDTO);
-        return Response.ok(messageSource.getMessage("auth.account.verified", null, LocaleContextHolder.getLocale()),
-                result);
+        return Response.ok(
+            messageSource.getMessage("auth.account.verified", null, LocaleContextHolder.getLocale()),
+            result
+        );
     }
 
     @PostMapping("/send-verification-code")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ApiResponse<?> sendVerificationCode(@Valid @RequestBody SendVerificationCodeRequestDTO request) {
-        authService.sendVerificationCode(request.getEmail());
+    public ApiResponse<Boolean> sendVerificationCode(@Valid @RequestBody SendVerificationCodeRequestDTO request) {
+        Boolean result = authService.sendVerificationCode(request.getEmail());
         return Response.ok(
-                messageSource.getMessage("auth.verification.code.sent", null, LocaleContextHolder.getLocale()), null);
+                messageSource.getMessage("auth.verification.code.sent", null, LocaleContextHolder.getLocale()), result);
     }
 
     @PostMapping("/resend-verification-code")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ApiResponse<?> resendVerificationCode(@Valid @RequestBody SendVerificationCodeRequestDTO request) {
-        authService.resendVerificationCode(request.getEmail());
+    public ApiResponse<Boolean> resendVerificationCode(@Valid @RequestBody SendVerificationCodeRequestDTO request) {
+        Boolean result = authService.resendVerificationCode(request.getEmail());
         return Response.ok(
-                messageSource.getMessage("auth.verification.code.resent", null, LocaleContextHolder.getLocale()), null);
+            messageSource.getMessage("auth.verification.code.resent", null, LocaleContextHolder.getLocale()), 
+            result
+        );
     }
 
     @PostMapping("/refresh-token")

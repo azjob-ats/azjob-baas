@@ -55,7 +55,11 @@ Este guia apresenta os padrões de projeto, nomenclaturas e boas práticas ampla
 
 - Uso de transações: `@Transactional` no nível de service
 
-- Estratégia de exclusão lógica
+- Estratégia de exclusão lógica (isDeleted)
+
+| Campo         | Tipo            | Obrigatório | Descrição                                       | Restrições                                   |
+|---------------|-----------------|-------------|-------------------------------------------------|----------------------------------------------|
+| isDeleted     | BOOLEAN         | sim         | Exclusão lógica                                 | Padrão: false                                |
 
 ## 7 Organização de Pacotes
 ### 7.1 Estrutura por funcionalidade (modularizada)

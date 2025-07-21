@@ -85,4 +85,10 @@ public class User {
 
     @Column(nullable = false, length = 50)
     private String provider;
+
+    @Column(nullable = false, length = 50)
+    private String idProvider;
+
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
 }

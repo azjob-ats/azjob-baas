@@ -9,8 +9,8 @@ public interface AuthService {
     AuthResponseDTO signUp(SignUpRequestDTO signUpRequestDTO);
     AuthResponseDTO signIn(SignInRequestDTO signInRequestDTO);
     AuthResponseDTO verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO);
-    void sendVerificationCode(String email);
-    void resendVerificationCode(String email);
+    Boolean sendVerificationCode(String email);
+    boolean resendVerificationCode(String email);
     AuthResponseDTO refreshToken(String refreshToken);
     void forgotPassword(String email);
     void resetPassword(String token, String newPassword);

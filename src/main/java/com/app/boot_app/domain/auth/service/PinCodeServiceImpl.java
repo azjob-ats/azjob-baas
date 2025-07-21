@@ -10,6 +10,7 @@ import com.app.boot_app.domain.auth.exception.ConflictException;
 import com.app.boot_app.domain.auth.repository.PinCodeRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
@@ -41,18 +42,40 @@ public class PinCodeServiceImpl implements PinCodeService {
 
     @Override
     public boolean validatePinCode(UUID userId, String pin) {
-        PinCode pinCode = pinCodeRepository.findByUserIdAndCode(userId, pin)
-            .filter(code -> !code.getIsUsed())
-            .filter(code -> code.getExpiresAt().isAfter(LocalDateTime.now()))
-            .orElseThrow(() -> new ConflictException(
-                "auth/wrong-pin-invalid",
-                messageSource.getMessage("auth.invalid.credentials", null, LocaleContextHolder.getLocale())
-            ));
+    Optional<PinCode> optionalPin = pinCodeRepository.findByUserIdAndCode(userId, pin);
 
-        pinCode.setIsUsed(true);
-        pinCodeRepository.save(pinCode);
-
-        return true;
+    if (optionalPin.isEmpty()) {
+        // PIN não encontrado
+        throw new ConflictException(
+            "auth/wrong-pin-not-found",
+            messageSource.getMessage("auth.pin.not-found", null, LocaleContextHolder.getLocale())
+        );
     }
+
+    PinCode pinCode = optionalPin.get();
+
+    if (pinCode.getIsUsed()) {
+        // PIN já usado
+        throw new ConflictException(
+            "auth/wrong-pin-used",
+            messageSource.getMessage("auth.pin.used", null, LocaleContextHolder.getLocale())
+        );
+    }
+
+    if (pinCode.getExpiresAt().isBefore(LocalDateTime.now())) {
+        // PIN expirado
+        throw new ConflictException(
+            "auth/wrong-pin-expired",
+            messageSource.getMessage("auth.pin.expired", null, LocaleContextHolder.getLocale())
+        );
+    }
+
+    // Marca como usado e salva
+    pinCode.setIsUsed(true);
+    pinCodeRepository.save(pinCode);
+
+    return true;
+}
+
     
 }
