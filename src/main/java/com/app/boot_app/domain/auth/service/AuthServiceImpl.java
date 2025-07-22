@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.app.boot_app.domain.auth.dto.AuthResponseDTO;
+import com.app.boot_app.domain.auth.dto.FirebaseSignInResponseDTO;
 import com.app.boot_app.domain.auth.dto.RefreshTokenDTO;
 import com.app.boot_app.domain.auth.dto.SignInRequestDTO;
 import com.app.boot_app.domain.auth.dto.SignUpRequestDTO;
@@ -188,18 +189,24 @@ public class AuthServiceImpl implements AuthService {
 
             Map<String, Object> claims = new HashMap<>();
             claims.put("email", signInRequestDTO.getEmail());
-            String accessToken = firebaseAuthService.login(signInRequestDTO.getEmail(), signInRequestDTO.getPassword());// firebaseAuth.createCustomToken(userRecord.getUid(),
+            FirebaseSignInResponseDTO res = firebaseAuthService.signInWithEmailAndPassword(signInRequestDTO.getEmail(), signInRequestDTO.getPassword());// firebaseAuth.createCustomToken(userRecord.getUid(),
                                                                                                                         // claims);
 
             var refreshToken = RefreshTokenDTO.builder()
-                    .token(UUID.randomUUID().toString())
-                    .expiresIn(LocalDateTime.now().plusMinutes(30))
+                    .token(res.getRefreshToken())
+                    .expiresIn(
+                        LocalDateTime.now().plusSeconds(
+                            Long.parseLong(
+                                res.getExpiresIn()
+                            )
+                        )
+                    )
                     .timestamp(LocalDateTime.now())
                     .userId(user.getId())
                     .build();
 
             return AuthResponseDTO.builder()
-                    .accessToken(accessToken)
+                    .accessToken(res.getIdToken())
                     .refreshToken(refreshToken)
                     .build();
 

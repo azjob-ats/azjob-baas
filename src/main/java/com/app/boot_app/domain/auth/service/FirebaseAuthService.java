@@ -1,4 +1,6 @@
 package com.app.boot_app.domain.auth.service;
+
+import com.app.boot_app.domain.auth.dto.FirebaseSignInResponseDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -15,7 +17,7 @@ public class FirebaseAuthService {
 
     private static final String FIREBASE_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=";
 
-    public String login(String email, String password) {
+    public FirebaseSignInResponseDTO signInWithEmailAndPassword(String email, String password) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -24,22 +26,21 @@ public class FirebaseAuthService {
         Map<String, Object> body = Map.of(
                 "email", email,
                 "password", password,
-                "returnSecureToken", true
+                "returnSecureToken", 
+                true
         );
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    FIREBASE_URL + firebaseApiKey, HttpMethod.POST, entity, Map.class
+            ResponseEntity<FirebaseSignInResponseDTO> response = restTemplate.exchange(
+                    FIREBASE_URL + firebaseApiKey,
+                    HttpMethod.POST,
+                    entity,
+                    FirebaseSignInResponseDTO.class
             );
 
-            Map<String, Object> responseBody = response.getBody();
-            if (responseBody != null && responseBody.containsKey("idToken")) {
-                return (String) responseBody.get("idToken");
-            }
-
-            throw new RuntimeException("Login inválido");
+            return response.getBody();
 
         } catch (HttpClientErrorException e) {
             throw new RuntimeException("E-mail ou senha incorretos");
