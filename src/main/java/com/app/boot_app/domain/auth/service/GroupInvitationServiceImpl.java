@@ -23,7 +23,7 @@ import com.app.boot_app.domain.auth.repository.GroupRepository;
 import com.app.boot_app.domain.auth.repository.RoleRepository;
 import com.app.boot_app.domain.auth.repository.UserRepository;
 import com.app.boot_app.domain.auth.security.SecurityUtils;
-import com.app.boot_app.shared.service.EmailService;
+import com.app.boot_app.shared.infra.email.Email;
 
 @Service
 public class GroupInvitationServiceImpl implements GroupInvitationService {
@@ -33,13 +33,13 @@ public class GroupInvitationServiceImpl implements GroupInvitationService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final GroupMemberRepository groupMemberRepository;
-    private final EmailService emailService;
+    private final Email emailService;
     private final SecurityUtils securityUtils;
     private final MessageSource messageSource;
 
     public GroupInvitationServiceImpl(GroupInvitationRepository invitationRepository, GroupRepository groupRepository,
             UserRepository userRepository, RoleRepository roleRepository, GroupMemberRepository groupMemberRepository,
-            EmailService emailService, SecurityUtils securityUtils, MessageSource messageSource) {
+            Email emailService, SecurityUtils securityUtils, MessageSource messageSource) {
         this.invitationRepository = invitationRepository;
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;

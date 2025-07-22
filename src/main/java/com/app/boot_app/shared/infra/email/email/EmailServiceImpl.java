@@ -1,11 +1,13 @@
-package com.app.boot_app.shared.service;
+package com.app.boot_app.shared.infra.email.email;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import com.app.boot_app.shared.infra.email.Email;
+
 @Service
-public class EmailServiceImpl implements EmailService {
+public class EmailServiceImpl implements Email {
 
     private final JavaMailSender mailSender;
 

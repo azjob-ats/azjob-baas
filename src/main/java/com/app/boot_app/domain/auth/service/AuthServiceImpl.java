@@ -33,8 +33,8 @@ import com.app.boot_app.domain.auth.repository.UserRepository;
 import com.app.boot_app.shared.infra.auth.AuthAdapter;
 import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseRefresh;
 import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseSignIn;
-import com.app.boot_app.shared.service.EmailService;
-import com.app.boot_app.shared.service.JwtService;
+import com.app.boot_app.shared.infra.email.Email;
+import com.app.boot_app.shared.infra.jwt.Jwt;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import lombok.RequiredArgsConstructor;
 
@@ -44,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final EmailService emailService;
+    private final Email emailService;
     private final PinCodeService pinCodeService;
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
@@ -52,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
     private final MessageSource messageSource;
     private final UserMapper userMapper;
     private final AuthAdapter authAdapter;
-    private final JwtService jwtService;
+    private final Jwt jwtService;
 
     @Override
     public Boolean signUp(SignUpRequestDTO signUpRequestDTO) {

@@ -1,5 +1,6 @@
-package com.app.boot_app.shared.service;
+package com.app.boot_app.shared.infra.jwt.jwt_auth0;
 
+import com.app.boot_app.shared.infra.jwt.Jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
@@ -13,7 +14,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 @Service
-public class JwtServiceImpl implements JwtService {
+public class JwtServiceImpl implements Jwt {
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -34,9 +35,17 @@ public class JwtServiceImpl implements JwtService {
             Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT jwt = verifier.verify(token);
+            System.out.println(extractEmail(token));
+            System.out.println(extractEmail(jwt.getSubject()));
             return jwt.getSubject();
         } catch (JWTVerificationException e) {
             throw new RuntimeException("Token inválido ou expirado");
         }
+    }
+
+    
+    public String extractEmail(String token) {
+        DecodedJWT jwt = JWT.decode(token);
+        return jwt.getClaim("claims").asMap().get("email").toString();
     }
 }
