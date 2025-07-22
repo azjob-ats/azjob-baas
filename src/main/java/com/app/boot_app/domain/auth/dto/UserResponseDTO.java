@@ -1,12 +1,11 @@
 package com.app.boot_app.domain.auth.dto;
 
-import com.app.boot_app.domain.auth.entity.Role;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 @Data
 @Schema(description = "Response DTO for user information")

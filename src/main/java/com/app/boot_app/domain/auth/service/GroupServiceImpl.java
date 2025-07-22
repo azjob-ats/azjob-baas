@@ -17,7 +17,6 @@ import com.app.boot_app.domain.auth.entity.Role;
 import com.app.boot_app.domain.auth.entity.User;
 import com.app.boot_app.domain.auth.repository.GroupRepository;
 import com.app.boot_app.domain.auth.repository.RoleRepository;
-import com.app.boot_app.domain.auth.repository.UserRepository;
 import com.app.boot_app.shared.exeception.model.ConflictException;
 import com.app.boot_app.shared.exeception.model.NotFoundException;
 
@@ -25,15 +24,13 @@ import com.app.boot_app.shared.exeception.model.NotFoundException;
 public class GroupServiceImpl implements GroupService {
 
     private final GroupRepository groupRepository;
-    private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final SecurityUtils securityUtils;
     private final MessageSource messageSource;
 
-    public GroupServiceImpl(GroupRepository groupRepository, UserRepository userRepository,
+    public GroupServiceImpl(GroupRepository groupRepository,
             RoleRepository roleRepository, SecurityUtils securityUtils, MessageSource messageSource) {
         this.groupRepository = groupRepository;
-        this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.securityUtils = securityUtils;
         this.messageSource = messageSource;
