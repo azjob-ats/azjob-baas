@@ -7,8 +7,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.app.boot_app.domain.auth.entity.User;
-import com.app.boot_app.domain.auth.exception.NotFoundException;
 import com.app.boot_app.domain.auth.repository.UserRepository;
+import com.app.boot_app.shared.exeception.model.NotFoundException;
 
 @Component
 public class SecurityUtils {

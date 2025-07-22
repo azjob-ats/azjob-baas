@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 
 import com.app.boot_app.domain.auth.entity.PinCode;
 import com.app.boot_app.domain.auth.entity.User;
-import com.app.boot_app.domain.auth.exception.ConflictException;
 import com.app.boot_app.domain.auth.repository.PinCodeRepository;
+import com.app.boot_app.shared.exeception.model.ConflictException;
 
 import java.time.LocalDateTime;
 import java.util.Optional;

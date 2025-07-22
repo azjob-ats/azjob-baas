@@ -20,8 +20,8 @@ import com.app.boot_app.domain.auth.dto.SignUpRequestDTO;
 import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 import com.app.boot_app.domain.auth.dto.ValidatePinForUpdatePasswordRequestDTO;
 import com.app.boot_app.domain.auth.dto.VerifyAccountRequestDTO;
-import com.app.boot_app.domain.auth.exception.BadRequestException;
 import com.app.boot_app.domain.auth.service.AuthService;
+import com.app.boot_app.shared.exeception.model.BadRequestException;
 import com.app.boot_app.shared.response.ApiResponse;
 import com.app.boot_app.shared.response.Response;
 

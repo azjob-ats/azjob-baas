@@ -1,3 +1,4 @@
+
 package com.app.boot_app.domain.auth.service;
 
 import org.springframework.context.MessageSource;
@@ -7,9 +8,9 @@ import org.springframework.stereotype.Service;
 import com.app.boot_app.domain.auth.dto.RoleRequestDTO;
 import com.app.boot_app.domain.auth.dto.RoleResponseDTO;
 import com.app.boot_app.domain.auth.entity.Role;
-import com.app.boot_app.domain.auth.exception.ConflictException;
-import com.app.boot_app.domain.auth.exception.NotFoundException;
 import com.app.boot_app.domain.auth.repository.RoleRepository;
+import com.app.boot_app.shared.exeception.model.ConflictException;
+import com.app.boot_app.shared.exeception.model.NotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;

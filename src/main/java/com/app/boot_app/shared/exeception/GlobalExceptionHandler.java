@@ -1,7 +1,9 @@
 package com.app.boot_app.shared.exeception;
 
-
-import com.app.boot_app.domain.auth.exception.*;
+import com.app.boot_app.shared.exeception.model.BadRequestException;
+import com.app.boot_app.shared.exeception.model.ConflictException;
+import com.app.boot_app.shared.exeception.model.InternalServerErrorException;
+import com.app.boot_app.shared.exeception.model.NotFoundException;
 import com.app.boot_app.shared.response.ApiResponse;
 import com.app.boot_app.shared.response.Response;
 import org.springframework.context.MessageSource;

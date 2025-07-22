@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 import com.app.boot_app.domain.auth.dto.GroupAuditLogResponseDTO;
 import com.app.boot_app.domain.auth.entity.Group;
 import com.app.boot_app.domain.auth.entity.GroupAuditLog;
-import com.app.boot_app.domain.auth.exception.NotFoundException;
 import com.app.boot_app.domain.auth.repository.GroupAuditLogRepository;
 import com.app.boot_app.domain.auth.repository.GroupRepository;
+import com.app.boot_app.shared.exeception.model.NotFoundException;
 
 import java.util.List;
 import java.util.UUID;

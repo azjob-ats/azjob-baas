@@ -15,12 +15,12 @@ import com.app.boot_app.domain.auth.entity.Group;
 import com.app.boot_app.domain.auth.entity.GroupMember;
 import com.app.boot_app.domain.auth.entity.Role;
 import com.app.boot_app.domain.auth.entity.User;
-import com.app.boot_app.domain.auth.exception.ConflictException;
-import com.app.boot_app.domain.auth.exception.NotFoundException;
 import com.app.boot_app.domain.auth.repository.GroupMemberRepository;
 import com.app.boot_app.domain.auth.repository.GroupRepository;
 import com.app.boot_app.domain.auth.repository.RoleRepository;
 import com.app.boot_app.domain.auth.repository.UserRepository;
+import com.app.boot_app.shared.exeception.model.ConflictException;
+import com.app.boot_app.shared.exeception.model.NotFoundException;
 
 @Service
 public class GroupMemberServiceImpl implements GroupMemberService {

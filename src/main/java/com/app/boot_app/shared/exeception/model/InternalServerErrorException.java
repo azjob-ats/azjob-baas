@@ -1,4 +1,4 @@
-package com.app.boot_app.domain.auth.exception;
+package com.app.boot_app.shared.exeception.model;
 import com.app.boot_app.shared.exeception.BaseHttpException;
 
 public class InternalServerErrorException extends BaseHttpException {
