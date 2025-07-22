@@ -1,47 +1,33 @@
 package com.app.boot_app.shared.infra.auth.firebase_sdk.service;
 
-import com.app.boot_app.domain.auth.dto.AuthResponseDTO;
-import com.app.boot_app.domain.auth.dto.RefreshTokenDTO;
-import com.app.boot_app.domain.auth.entity.Group;
-import com.app.boot_app.domain.auth.entity.GroupAuditLog;
-import com.app.boot_app.domain.auth.entity.GroupMember;
-import com.app.boot_app.domain.auth.entity.Role;
-import com.app.boot_app.domain.auth.entity.User;
-import com.app.boot_app.domain.auth.enums.GroupName;
-import com.app.boot_app.domain.auth.enums.ProviderName;
-import com.app.boot_app.domain.auth.enums.RoleName;
-import com.app.boot_app.shared.exeception.model.BadRequestException;
-import com.app.boot_app.shared.exeception.model.ConflictException;
-import com.app.boot_app.shared.exeception.model.InternalServerErrorException;
-import com.app.boot_app.shared.exeception.model.NotFoundException;
-import com.app.boot_app.shared.infra.auth.AuthAdapter;
-import com.app.boot_app.shared.infra.auth.firebase_sdk.constant.Constant;
-import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseRefresh;
-import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseSignIn;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.UserRecord;
-
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.app.boot_app.shared.exeception.model.BadRequestException;
+import com.app.boot_app.shared.exeception.model.ConflictException;
+import com.app.boot_app.shared.exeception.model.InternalServerErrorException;
+import com.app.boot_app.shared.infra.auth.AuthAdapter;
+import com.app.boot_app.shared.infra.auth.firebase_sdk.constant.Constant;
+import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseRefresh;
+import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseSignIn;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

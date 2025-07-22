@@ -21,7 +21,6 @@ import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 import com.app.boot_app.domain.auth.dto.ValidatePinForUpdatePasswordRequestDTO;
 import com.app.boot_app.domain.auth.dto.VerifyAccountRequestDTO;
 import com.app.boot_app.domain.auth.service.AuthService;
-import com.app.boot_app.shared.exeception.model.BadRequestException;
 import com.app.boot_app.shared.response.ApiResponse;
 import com.app.boot_app.shared.response.Response;
 
@@ -99,11 +98,12 @@ public class AuthController {
     }
 
     @PostMapping("/validate-pin-for-update-password")
-    public ApiResponse<String> validatePinForUpdatePassword(@Valid @RequestBody ValidatePinForUpdatePasswordRequestDTO request) {
+    public ApiResponse<String> validatePinForUpdatePassword(
+            @Valid @RequestBody ValidatePinForUpdatePasswordRequestDTO request) {
         String result = authService.validatePinForUpdatePassword(request.getCode(), request.getEmail());
         return Response.ok(
-            messageSource.getMessage("auth.password.reset.link.sent", null, LocaleContextHolder.getLocale()),
-            result);
+                messageSource.getMessage("auth.password.reset.link.sent", null, LocaleContextHolder.getLocale()),
+                result);
     }
 
     @PostMapping("/forgot-password")
