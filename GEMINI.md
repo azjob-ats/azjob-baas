@@ -3,7 +3,7 @@ Este guia apresenta os padrões de projeto, nomenclaturas e boas práticas ampla
 
 ## 1 Estrutura do Projeto
 
-- Arquitetura em camadas: `controller → service → repository → dto → entity → mapper → exception`
+- Arquitetura em camadas: `controller → service → repository → dto → entity → mapper`
 
 - Padrão de pacotes organizados por funcionalidades/módulos (ex: `auth`, `todo`)
 
@@ -73,28 +73,32 @@ src/main/java/com/app/boot_app/
 │   │   ├── controller/
 │   │   ├── dto/
 │   │   ├── entity/
-│   │   ├── enum/
-│   │   ├── exception/
+│   │   ├── enums/
+│   │   ├── mapper/
 │   │   ├── repository/
 │   │   ├── security/
-│   │   ├── mapper/
 │   │   └── service/
 │   ├── todo/
 │   │   ├── constant/
 │   │   ├── controller/
 │   │   ├── dto/
 │   │   ├── entity/
-│   │   ├── enum/
-│   │   ├── exception/
+│   │   ├── enums/
+│   │   ├── mapper/
 │   │   ├── repository/
 │   │   ├── security/
-│   │   ├── mapper/
 │   │   └── service/
 └── shared/
     ├── exception/
+    ├── infra/
+    │    ├── auth/
+    │    │   ├── firebase_sdk/
+    │    │   │   ├── constant/
+    │    │   │   ├── model/
+    │    │   │   └── service/
+    │    │   └── AuthAdapter.java
     ├── response/
     ├── constant/
-    ├── service/
     └── util/
 ```
 
@@ -117,6 +121,8 @@ src/main/java/com/app/boot_app/
 - `mapper`: mapeamento entre DTO ↔ Entity (MapStruct)
 
 - `exception`: validações e erros de domínio
+
+- `infra`: ferramenta e bibliotecas externas
 
 ### 7.3 Nomenclatura por Camada
 
