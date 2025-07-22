@@ -1,8 +1,8 @@
-package com.app.boot_app.domain.auth.dto;
+package com.app.boot_app.shared.infra.auth.firebase_sdk.model;
 import lombok.Data;
 
 @Data
-public class FirebaseSignInResponseDTO {
+public class FirebaseSignIn {
     private String kind;
     private String localId;
     private String email;

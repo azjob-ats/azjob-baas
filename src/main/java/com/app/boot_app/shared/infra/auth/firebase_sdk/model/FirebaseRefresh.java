@@ -1,10 +1,10 @@
-package com.app.boot_app.domain.auth.dto;
+package com.app.boot_app.shared.infra.auth.firebase_sdk.model;
 import java.util.UUID;
 
 import lombok.Data;
 
 @Data
-public class FirebaseRefreshResponseDTO {
+public class FirebaseRefresh {
     private String accessToken;
     private String expiresIn;
     private String refreshToken;

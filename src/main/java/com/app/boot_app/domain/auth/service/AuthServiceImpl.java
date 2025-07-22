@@ -9,8 +9,6 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.app.boot_app.domain.auth.dto.AuthResponseDTO;
-import com.app.boot_app.domain.auth.dto.FirebaseRefreshResponseDTO;
-import com.app.boot_app.domain.auth.dto.FirebaseSignInResponseDTO;
 import com.app.boot_app.domain.auth.dto.RefreshTokenDTO;
 import com.app.boot_app.domain.auth.dto.SignInRequestDTO;
 import com.app.boot_app.domain.auth.dto.SignUpRequestDTO;
@@ -26,21 +24,18 @@ import com.app.boot_app.domain.auth.enums.ProviderName;
 import com.app.boot_app.domain.auth.enums.RoleName;
 import com.app.boot_app.domain.auth.exception.BadRequestException;
 import com.app.boot_app.domain.auth.exception.ConflictException;
-import com.app.boot_app.domain.auth.exception.InternalServerErrorException;
 import com.app.boot_app.domain.auth.exception.NotFoundException;
 import com.app.boot_app.domain.auth.mapper.UserMapper;
 import com.app.boot_app.domain.auth.repository.GroupMemberRepository;
 import com.app.boot_app.domain.auth.repository.GroupRepository;
 import com.app.boot_app.domain.auth.repository.RoleRepository;
 import com.app.boot_app.domain.auth.repository.UserRepository;
+import com.app.boot_app.shared.infra.auth.AuthAdapter;
+import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseRefresh;
+import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseSignIn;
 import com.app.boot_app.shared.service.EmailService;
 import com.app.boot_app.shared.service.JwtService;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
-import com.google.firebase.auth.UserRecord;
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -49,7 +44,6 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final FirebaseAuth firebaseAuth;
     private final EmailService emailService;
     private final PinCodeService pinCodeService;
     private final GroupRepository groupRepository;
@@ -57,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
     private final GroupAuditLogService groupAuditLogService;
     private final MessageSource messageSource;
     private final UserMapper userMapper;
-    private final FirebaseAuthService firebaseAuthService;
+    private final AuthAdapter authAdapter;
     private final JwtService jwtService;
 
     @Override
@@ -67,77 +61,66 @@ public class AuthServiceImpl implements AuthService {
                     messageSource.getMessage("auth.email.exists", null, LocaleContextHolder.getLocale()));
         }
 
-        UserRecord.CreateRequest request = new UserRecord.CreateRequest()
-        .setEmail(signUpRequestDTO.getEmail())
-        .setPassword(signUpRequestDTO.getPassword())
-        .setDisplayName(signUpRequestDTO.getFirstName() + " " + signUpRequestDTO.getLastName())
-        .setEmailVerified(false)
-        .setDisabled(false);
+        var userRecord = authAdapter.signUpWithEmailAndPassword(
+                signUpRequestDTO.getEmail(),
+                signUpRequestDTO.getPassword(),
+                signUpRequestDTO.getFirstName() + " " + signUpRequestDTO.getLastName());
 
-        System.out.println(request.toString());
-        try {
-            UserRecord userRecord = firebaseAuth.createUser(request);
+        User user = new User();
+        user.setProvider(ProviderName.EMAIL_AND_PASSWORD_BY_GOOGLE.name());
+        user.setEmail(signUpRequestDTO.getEmail());
+        user.setPassword("******");
+        user.setIdProvider(userRecord.getUid());
+        user.setFirstName(signUpRequestDTO.getFirstName());
+        user.setLastName(signUpRequestDTO.getLastName());
+        user.setUsername(createUsername(signUpRequestDTO.getEmail()));
 
-            User user = new User();
-            user.setProvider(ProviderName.EMAIL_AND_PASSWORD_BY_GOOGLE.name());
-            user.setEmail(signUpRequestDTO.getEmail());
-            user.setPassword("******");
-            user.setIdProvider(userRecord.getUid());
-            user.setFirstName(signUpRequestDTO.getFirstName());
-            user.setLastName(signUpRequestDTO.getLastName());
-            user.setUsername(createUsername(signUpRequestDTO.getEmail()));
+        Role defaultRole = roleRepository.findByName(RoleName.USER.getName())
+                .orElseGet(() -> {
+                    Role newRole = new Role();
+                    newRole.setName(RoleName.USER.getName());
+                    newRole.setDescription(RoleName.USER.getDescription());
+                    newRole.setIsDefault(true);
+                    newRole.setLevel(RoleName.USER.getLevel());
+                    newRole.setCreatedAt(LocalDateTime.now());
+                    newRole.setUpdatedAt(LocalDateTime.now());
+                    return roleRepository.save(newRole);
+                });
+        user.setRole(defaultRole);
 
-            Role defaultRole = roleRepository.findByName(RoleName.USER.getName())
-            .orElseGet(() -> {
-                Role newRole = new Role();
-                newRole.setName(RoleName.USER.getName());
-                newRole.setDescription(RoleName.USER.getDescription());
-                newRole.setIsDefault(true);
-                newRole.setLevel(RoleName.USER.getLevel());
-                newRole.setCreatedAt(LocalDateTime.now());
-                newRole.setUpdatedAt(LocalDateTime.now());
-                return roleRepository.save(newRole);
-            });
-            user.setRole(defaultRole);
+        User registeredUser = userRepository.save(user);
 
-            User registeredUser = userRepository.save(user);
+        Group defaultGroup = groupRepository.findByName(GroupName.DEFAULT_GROUP.getName())
+                .orElseGet(() -> {
+                    Group newGroup = new Group();
+                    newGroup.setName(GroupName.DEFAULT_GROUP.getName());
+                    newGroup.setDescription(GroupName.DEFAULT_GROUP.getDescription());
+                    newGroup.setIsActive(true);
+                    newGroup.setCreatedAt(LocalDateTime.now());
+                    newGroup.setUpdatedAt(LocalDateTime.now());
+                    newGroup.setCreatedBy(user); // Now user has an ID
+                    return groupRepository.save(newGroup);
+                });
 
-            Group defaultGroup = groupRepository.findByName(GroupName.DEFAULT_GROUP.getName())
-            .orElseGet(() -> {
-                Group newGroup = new Group();
-                newGroup.setName(GroupName.DEFAULT_GROUP.getName());
-                newGroup.setDescription(GroupName.DEFAULT_GROUP.getDescription());
-                newGroup.setIsActive(true);
-                newGroup.setCreatedAt(LocalDateTime.now());
-                newGroup.setUpdatedAt(LocalDateTime.now());
-                newGroup.setCreatedBy(user); // Now user has an ID
-                return groupRepository.save(newGroup);
-            });
+        GroupMember groupMember = new GroupMember();
+        groupMember.setGroup(defaultGroup);
+        groupMember.setUser(user);
+        groupMember.setAssignedRole(defaultRole);
+        groupMember.setJoinedAt(LocalDateTime.now());
+        groupMember.setIsActive(true);
+        groupMemberRepository.save(groupMember);
 
-            GroupMember groupMember = new GroupMember();
-            groupMember.setGroup(defaultGroup);
-            groupMember.setUser(user);
-            groupMember.setAssignedRole(defaultRole);
-            groupMember.setJoinedAt(LocalDateTime.now());
-            groupMember.setIsActive(true);
-            groupMemberRepository.save(groupMember);
+        GroupAuditLog auditLog = new GroupAuditLog();
+        auditLog.setGroup(defaultGroup);
+        auditLog.setAction(GroupAuditLog.Action.USER_CREATED.name());
+        auditLog.setPerformedBy(user);
+        auditLog.setPerformedAt(LocalDateTime.now());
+        auditLog.setTargetUser(user);
+        auditLog.setNewValue(JsonNodeFactory.instance.objectNode().put("email", user.getEmail()).toString());
+        groupAuditLogService.createAuditLog(auditLog);
+        sendVerificationCode(registeredUser.getEmail());
+        return true;
 
-            GroupAuditLog auditLog = new GroupAuditLog();
-            auditLog.setGroup(defaultGroup);
-            auditLog.setAction(GroupAuditLog.Action.USER_CREATED.name());
-            auditLog.setPerformedBy(user);
-            auditLog.setPerformedAt(LocalDateTime.now());
-            auditLog.setTargetUser(user);
-            auditLog.setNewValue(JsonNodeFactory.instance.objectNode().put("email", user.getEmail()).toString());
-            groupAuditLogService.createAuditLog(auditLog);
-            sendVerificationCode(registeredUser.getEmail());
-            return true;
-
-        } catch (FirebaseAuthException e) {
-            throw new InternalServerErrorException("firebase-user-creation-error",
-                    messageSource.getMessage("auth.firebase.user.creation.error", new Object[] { e.getMessage() },
-                            LocaleContextHolder.getLocale()));
-        }
     }
 
     private String createUsername(String email) {
@@ -146,65 +129,50 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseDTO signIn(SignInRequestDTO signInRequestDTO) {
-        try {
 
-            UserRecord userRecord = firebaseAuth.getUserByEmail(signInRequestDTO.getEmail());
+        authAdapter.isEmailVerified(signInRequestDTO.getEmail());
 
-            if (!userRecord.isEmailVerified()) {
-                throw new BadRequestException(
-                        "auth/email-not-verified-firebase",
-                        messageSource.getMessage("auth.email.not.verified", null, LocaleContextHolder.getLocale()));
-            }
+        User user = userRepository.findByEmail(signInRequestDTO.getEmail())
+                .orElseThrow(() -> new NotFoundException("user-not-found",
+                        messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
 
-            User user = userRepository.findByEmail(signInRequestDTO.getEmail())
-                    .orElseThrow(() -> new NotFoundException("user-not-found",
-                            messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
-
-            if (!user.getIsVerified()) {
-                throw new BadRequestException(
-                        "auth/email-not-verified",
-                        messageSource.getMessage("auth.email.not.verified", null, LocaleContextHolder.getLocale()));
-            }
-
-            Map<String, Object> claims = new HashMap<>();
-            claims.put("email", signInRequestDTO.getEmail());
-            FirebaseSignInResponseDTO res = firebaseAuthService.signInWithEmailAndPassword(
-                signInRequestDTO.getEmail(), 
-                signInRequestDTO.getPassword()
-            );
-                                                                                                                       
-
-            var refreshToken = RefreshTokenDTO.builder()
-                    .token(res.getRefreshToken())
-                    .expiresIn(LocalDateTime.now().plusMinutes(60))
-                    .timestamp(LocalDateTime.now())
-                    .userId(user.getId())
-                    .build();
-
-            return AuthResponseDTO.builder()
-                    .accessToken(res.getIdToken())
-                    .refreshToken(refreshToken)
-                    .build();
-
-        } catch (FirebaseAuthException e) {
-            throw new ConflictException("invalid-credentials",
-                    messageSource.getMessage("auth.invalid.credentials", null, LocaleContextHolder.getLocale()));
-
+        if (!user.getIsVerified()) {
+            throw new BadRequestException(
+                    "auth/email-not-verified",
+                    messageSource.getMessage("auth.email.not.verified", null, LocaleContextHolder.getLocale()));
         }
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("email", signInRequestDTO.getEmail());
+        FirebaseSignIn res = authAdapter.signInWithEmailAndPassword(
+                signInRequestDTO.getEmail(),
+                signInRequestDTO.getPassword());
+
+        var refreshToken = RefreshTokenDTO.builder()
+                .token(res.getRefreshToken())
+                .expiresIn(LocalDateTime.now().plusMinutes(60))
+                .timestamp(LocalDateTime.now())
+                .userId(user.getId())
+                .build();
+
+        return AuthResponseDTO.builder()
+                .accessToken(res.getIdToken())
+                .refreshToken(refreshToken)
+                .build();
+
     }
 
     @Override
     public Boolean verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO) {
         User user = userRepository.findByEmail(verifyAccountRequestDTO.getEmail())
-        .orElseThrow(() -> new NotFoundException("auth/wrong-email",
-        messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
+                .orElseThrow(() -> new NotFoundException("auth/wrong-email",
+                        messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
 
         pinCodeService.validatePinCode(
-            user.getId(), 
-            verifyAccountRequestDTO.getCode()
-        );
+                user.getId(),
+                verifyAccountRequestDTO.getCode());
 
-        markEmailAsVerifiedInFirebase(user.getEmail());
+        authAdapter.markEmailAsVerified(user.getEmail());
 
         user.setIsVerified(true);
         user.setUpdatedAt(LocalDateTime.now());
@@ -250,13 +218,12 @@ public class AuthServiceImpl implements AuthService {
 
     public String validatePinForUpdatePassword(String code, String email) {
         User user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new NotFoundException("auth/wrong-email",
-        messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
+                .orElseThrow(() -> new NotFoundException("auth/wrong-email",
+                        messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
 
         pinCodeService.validatePinCode(
-            user.getId(), 
-            code
-        );
+                user.getId(),
+                code);
 
         return jwtService.generateToken(user.getEmail());
     }
@@ -265,21 +232,15 @@ public class AuthServiceImpl implements AuthService {
     public Boolean resetPassword(String token, String newPassword) {
         String email = jwtService.validateToken(token);
 
-        try {
-            UserRecord userRecord = firebaseAuth.getUser(email);
-            firebaseAuth.updateUser(new UserRecord.UpdateRequest(userRecord.getUid()).setPassword(newPassword));
-            return true;
+        authAdapter.resetPassword(email, newPassword);
 
-        } catch (FirebaseAuthException e) {
-            throw new ConflictException("invalid-or-expired-token", messageSource.getMessage(
-                    "auth.invalid.or.expired.token", new Object[] { e.getMessage() }, LocaleContextHolder.getLocale()));
-        }
+        return true;
     }
 
     @Override
     public AuthResponseDTO refreshToken(String refreshToken) {
         try {
-            FirebaseRefreshResponseDTO  token = firebaseAuthService.refreshIdToken(refreshToken);
+            FirebaseRefresh token = authAdapter.refreshIdToken(refreshToken);
 
             var refresh = RefreshTokenDTO.builder()
                     .token(token.getRefreshToken())
@@ -299,33 +260,14 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private void markEmailAsVerifiedInFirebase(String email) {
-        try {
-            UserRecord userFirebase = FirebaseAuth.getInstance().getUserByEmail(email);
-            UserRecord.UpdateRequest updateRequest = new UserRecord.UpdateRequest(userFirebase.getUid())
-                    .setEmailVerified(true);
-            FirebaseAuth.getInstance().updateUser(updateRequest);
-
-        } catch (FirebaseAuthException e) {
-            throw new ConflictException("invalid-credentials",
-                    messageSource.getMessage("auth.invalid.credentials", null, LocaleContextHolder.getLocale()));
-
-        }
-    }
-
     @Override
     public UserResponseDTO getUserByToken(String token) {
-        try {
-            FirebaseToken decodedToken = firebaseAuth.verifyIdToken(token);
-            System.out.println(decodedToken.getEmail());
-            User user = userRepository.findByEmail(decodedToken.getEmail())
-                    .orElseThrow(() -> new NotFoundException("user-not-found",
-                            messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
-            return userMapper.toResponse(user);
 
-        } catch (FirebaseAuthException e) {
-            throw new ConflictException("invalid-credentials",
-                    messageSource.getMessage("auth.invalid.credentials", null, LocaleContextHolder.getLocale()));
-        }
+        var decodedToken = authAdapter.getUserByToken(token);
+        User user = userRepository.findByEmail(decodedToken.getEmail())
+                .orElseThrow(() -> new NotFoundException("user-not-found",
+                        messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
+        return userMapper.toResponse(user);
+
     }
 }
