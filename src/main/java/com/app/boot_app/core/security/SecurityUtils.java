@@ -1,4 +1,4 @@
-package com.app.boot_app.domain.auth.security;
+package com.app.boot_app.core.security;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;

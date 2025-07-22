@@ -9,6 +9,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.app.boot_app.core.security.SecurityUtils;
 import com.app.boot_app.domain.auth.dto.GroupRequestDTO;
 import com.app.boot_app.domain.auth.dto.GroupResponseDTO;
 import com.app.boot_app.domain.auth.entity.Group;
@@ -17,7 +18,6 @@ import com.app.boot_app.domain.auth.entity.User;
 import com.app.boot_app.domain.auth.repository.GroupRepository;
 import com.app.boot_app.domain.auth.repository.RoleRepository;
 import com.app.boot_app.domain.auth.repository.UserRepository;
-import com.app.boot_app.domain.auth.security.SecurityUtils;
 import com.app.boot_app.shared.exeception.model.ConflictException;
 import com.app.boot_app.shared.exeception.model.NotFoundException;
 

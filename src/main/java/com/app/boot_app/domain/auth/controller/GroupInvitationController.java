@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.boot_app.core.security.SecurityUtils;
 import com.app.boot_app.domain.auth.dto.GroupInvitationRequestDTO;
 import com.app.boot_app.domain.auth.dto.GroupInvitationResponseDTO;
 import com.app.boot_app.domain.auth.entity.User;
-import com.app.boot_app.domain.auth.security.SecurityUtils;
 import com.app.boot_app.domain.auth.service.GroupInvitationService;
 import com.app.boot_app.shared.response.ApiResponse;
 import com.app.boot_app.shared.response.Response;

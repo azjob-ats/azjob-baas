@@ -8,7 +8,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.app.boot_app.domain.auth.security.FirebaseTokenFilter;
+import com.app.boot_app.core.security.FirebaseTokenFilter;
 
 @Configuration
 @EnableWebSecurity

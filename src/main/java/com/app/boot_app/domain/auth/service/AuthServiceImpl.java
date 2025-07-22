@@ -8,6 +8,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.app.boot_app.core.security.SecurityUtils;
 import com.app.boot_app.domain.auth.dto.AuthResponseDTO;
 import com.app.boot_app.domain.auth.dto.RefreshTokenDTO;
 import com.app.boot_app.domain.auth.dto.SignInRequestDTO;
@@ -53,6 +54,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapper userMapper;
     private final AuthAdapter authAdapter;
     private final Jwt jwtService;
+    private final SecurityUtils securityUtils;
 
     @Override
     public Boolean signUp(SignUpRequestDTO signUpRequestDTO) {
@@ -262,7 +264,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserResponseDTO getUserByToken(String token) {
-
+        User createdBy = securityUtils.getAuthenticatedUser();
+        System.out.println(createdBy);
         var decodedToken = authAdapter.getUserByToken(token);
         User user = userRepository.findByEmail(decodedToken.getEmail())
                 .orElseThrow(() -> new NotFoundException("user-not-found",
