@@ -1,16 +1,15 @@
 package com.app.boot_app.domain.auth.service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.app.boot_app.domain.auth.dto.AuthResponseDTO;
+import com.app.boot_app.domain.auth.dto.FirebaseRefreshResponseDTO;
 import com.app.boot_app.domain.auth.dto.FirebaseSignInResponseDTO;
 import com.app.boot_app.domain.auth.dto.RefreshTokenDTO;
 import com.app.boot_app.domain.auth.dto.SignInRequestDTO;
@@ -25,8 +24,6 @@ import com.app.boot_app.domain.auth.entity.User;
 import com.app.boot_app.domain.auth.enums.GroupName;
 import com.app.boot_app.domain.auth.enums.ProviderName;
 import com.app.boot_app.domain.auth.enums.RoleName;
-import java.util.Map;
-import java.util.HashMap;
 import com.app.boot_app.domain.auth.exception.BadRequestException;
 import com.app.boot_app.domain.auth.exception.ConflictException;
 import com.app.boot_app.domain.auth.exception.InternalServerErrorException;
@@ -37,12 +34,13 @@ import com.app.boot_app.domain.auth.repository.GroupRepository;
 import com.app.boot_app.domain.auth.repository.RoleRepository;
 import com.app.boot_app.domain.auth.repository.UserRepository;
 import com.app.boot_app.shared.service.EmailService;
-import com.app.boot_app.shared.util.JwtExtract;
+import com.app.boot_app.shared.service.JwtService;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -60,20 +58,21 @@ public class AuthServiceImpl implements AuthService {
     private final MessageSource messageSource;
     private final UserMapper userMapper;
     private final FirebaseAuthService firebaseAuthService;
+    private final JwtService jwtService;
 
     @Override
-    public AuthResponseDTO signUp(SignUpRequestDTO signUpRequestDTO) {
+    public Boolean signUp(SignUpRequestDTO signUpRequestDTO) {
         if (userRepository.findByEmail(signUpRequestDTO.getEmail()).isPresent()) {
             throw new ConflictException("email-already-exists",
                     messageSource.getMessage("auth.email.exists", null, LocaleContextHolder.getLocale()));
         }
 
         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
-                .setEmail(signUpRequestDTO.getEmail())
-                .setPassword(signUpRequestDTO.getPassword())
-                .setDisplayName(signUpRequestDTO.getFirstName() + " " + signUpRequestDTO.getLastName())
-                .setEmailVerified(false)
-                .setDisabled(false);
+        .setEmail(signUpRequestDTO.getEmail())
+        .setPassword(signUpRequestDTO.getPassword())
+        .setDisplayName(signUpRequestDTO.getFirstName() + " " + signUpRequestDTO.getLastName())
+        .setEmailVerified(false)
+        .setDisabled(false);
 
         System.out.println(request.toString());
         try {
@@ -89,31 +88,31 @@ public class AuthServiceImpl implements AuthService {
             user.setUsername(createUsername(signUpRequestDTO.getEmail()));
 
             Role defaultRole = roleRepository.findByName(RoleName.USER.getName())
-                    .orElseGet(() -> {
-                        Role newRole = new Role();
-                        newRole.setName(RoleName.USER.getName());
-                        newRole.setDescription(RoleName.USER.getDescription());
-                        newRole.setIsDefault(true);
-                        newRole.setLevel(RoleName.USER.getLevel());
-                        newRole.setCreatedAt(LocalDateTime.now());
-                        newRole.setUpdatedAt(LocalDateTime.now());
-                        return roleRepository.save(newRole);
-                    });
+            .orElseGet(() -> {
+                Role newRole = new Role();
+                newRole.setName(RoleName.USER.getName());
+                newRole.setDescription(RoleName.USER.getDescription());
+                newRole.setIsDefault(true);
+                newRole.setLevel(RoleName.USER.getLevel());
+                newRole.setCreatedAt(LocalDateTime.now());
+                newRole.setUpdatedAt(LocalDateTime.now());
+                return roleRepository.save(newRole);
+            });
             user.setRole(defaultRole);
 
             User registeredUser = userRepository.save(user);
 
             Group defaultGroup = groupRepository.findByName(GroupName.DEFAULT_GROUP.getName())
-                    .orElseGet(() -> {
-                        Group newGroup = new Group();
-                        newGroup.setName(GroupName.DEFAULT_GROUP.getName());
-                        newGroup.setDescription(GroupName.DEFAULT_GROUP.getDescription());
-                        newGroup.setIsActive(true);
-                        newGroup.setCreatedAt(LocalDateTime.now());
-                        newGroup.setUpdatedAt(LocalDateTime.now());
-                        newGroup.setCreatedBy(user); // Now user has an ID
-                        return groupRepository.save(newGroup);
-                    });
+            .orElseGet(() -> {
+                Group newGroup = new Group();
+                newGroup.setName(GroupName.DEFAULT_GROUP.getName());
+                newGroup.setDescription(GroupName.DEFAULT_GROUP.getDescription());
+                newGroup.setIsActive(true);
+                newGroup.setCreatedAt(LocalDateTime.now());
+                newGroup.setUpdatedAt(LocalDateTime.now());
+                newGroup.setCreatedBy(user); // Now user has an ID
+                return groupRepository.save(newGroup);
+            });
 
             GroupMember groupMember = new GroupMember();
             groupMember.setGroup(defaultGroup);
@@ -123,36 +122,16 @@ public class AuthServiceImpl implements AuthService {
             groupMember.setIsActive(true);
             groupMemberRepository.save(groupMember);
 
-            // Log user creation
             GroupAuditLog auditLog = new GroupAuditLog();
             auditLog.setGroup(defaultGroup);
             auditLog.setAction(GroupAuditLog.Action.USER_CREATED.name());
             auditLog.setPerformedBy(user);
             auditLog.setPerformedAt(LocalDateTime.now());
             auditLog.setTargetUser(user);
-            auditLog.setNewValue(JsonNodeFactory.instance.objectNode().put("email", user.getEmail()).toString()); // Convert
-                                                                                                                  // ObjectNode
-                                                                                                                  // to
-                                                                                                                  // String
+            auditLog.setNewValue(JsonNodeFactory.instance.objectNode().put("email", user.getEmail()).toString());
             groupAuditLogService.createAuditLog(auditLog);
-
-            Map<String, Object> claims = new HashMap<>();
-            claims.put("email", user.getEmail());
-
-            String accessToken = firebaseAuth.createCustomToken(userRecord.getUid(), claims);
-
-            var refreshToken = RefreshTokenDTO.builder()
-                    .token(UUID.randomUUID().toString())
-                    .expiresIn(LocalDateTime.now().plusMinutes(30))
-                    .timestamp(LocalDateTime.now())
-                    .userId(user.getId())
-                    .build();
-
             sendVerificationCode(registeredUser.getEmail());
-            return AuthResponseDTO.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .build();
+            return true;
 
         } catch (FirebaseAuthException e) {
             throw new InternalServerErrorException("firebase-user-creation-error",
@@ -189,18 +168,15 @@ public class AuthServiceImpl implements AuthService {
 
             Map<String, Object> claims = new HashMap<>();
             claims.put("email", signInRequestDTO.getEmail());
-            FirebaseSignInResponseDTO res = firebaseAuthService.signInWithEmailAndPassword(signInRequestDTO.getEmail(), signInRequestDTO.getPassword());// firebaseAuth.createCustomToken(userRecord.getUid(),
-                                                                                                                        // claims);
+            FirebaseSignInResponseDTO res = firebaseAuthService.signInWithEmailAndPassword(
+                signInRequestDTO.getEmail(), 
+                signInRequestDTO.getPassword()
+            );
+                                                                                                                       
 
             var refreshToken = RefreshTokenDTO.builder()
                     .token(res.getRefreshToken())
-                    .expiresIn(
-                        LocalDateTime.now().plusSeconds(
-                            Long.parseLong(
-                                res.getExpiresIn()
-                            )
-                        )
-                    )
+                    .expiresIn(LocalDateTime.now().plusMinutes(60))
                     .timestamp(LocalDateTime.now())
                     .userId(user.getId())
                     .build();
@@ -218,44 +194,23 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponseDTO verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO) {
+    public Boolean verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO) {
         User user = userRepository.findByEmail(verifyAccountRequestDTO.getEmail())
-                .orElseThrow(() -> new NotFoundException("auth/wrong-email",
-                        messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
+        .orElseThrow(() -> new NotFoundException("auth/wrong-email",
+        messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
 
-        pinCodeService.validatePinCode(user.getId(), verifyAccountRequestDTO.getCode());
+        pinCodeService.validatePinCode(
+            user.getId(), 
+            verifyAccountRequestDTO.getCode()
+        );
 
-        // Mark email as verified in Firebase
         markEmailAsVerifiedInFirebase(user.getEmail());
 
-        // Update user status in local database
         user.setIsVerified(true);
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 
-        // Generate tokens
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("email", user.getEmail());
-        String accessToken;
-        try {
-            accessToken = firebaseAuth.createCustomToken(user.getId().toString(), claims);
-        } catch (FirebaseAuthException e) {
-            throw new InternalServerErrorException("firebase-token-creation-error",
-                    messageSource.getMessage("auth.firebase.token.creation.error", new Object[] { e.getMessage() },
-                            LocaleContextHolder.getLocale()));
-        }
-
-        var refreshToken = RefreshTokenDTO.builder()
-                .token(UUID.randomUUID().toString())
-                .expiresIn(LocalDateTime.now().plusMinutes(30))
-                .timestamp(LocalDateTime.now())
-                .userId(user.getId())
-                .build();
-
-        return AuthResponseDTO.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+        return true;
     }
 
     @Override
@@ -277,32 +232,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public boolean resendVerificationCode(String email) {
-        // A lógica é a mesma que sendVerificationCode, invalidando o anterior (o que já
-        // acontece ao gerar um novo)
+    public Boolean resendVerificationCode(String email) {
         sendVerificationCode(email);
 
         return true;
-    }
-
-    @Override
-    public AuthResponseDTO refreshToken(String refreshToken) {
-        // In a real application, you would validate the refresh token against a
-        // database
-        // and then generate a new Firebase custom token.
-        // For simplicity, we'll just generate a new custom token for a dummy user.
-        try {
-            // Assuming refreshToken contains the UID of the user for whom to generate a new
-            // token
-            // In a real scenario, you'd have a more robust refresh token management system
-            String customToken = firebaseAuth.createCustomToken(refreshToken);
-            return AuthResponseDTO.builder()
-                    .accessToken(customToken)
-                    .build();
-        } catch (FirebaseAuthException e) {
-            throw new ConflictException("invalid-refresh-token", messageSource.getMessage("auth.invalid.refresh.token",
-                    new Object[] { e.getMessage() }, LocaleContextHolder.getLocale()));
-        }
     }
 
     @Override
@@ -315,36 +248,54 @@ public class AuthServiceImpl implements AuthService {
         return true;
     }
 
-    public void validatePinForUpdatePassword() {
+    public String validatePinForUpdatePassword(String code, String email) {
+        User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new NotFoundException("auth/wrong-email",
+        messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
 
+        pinCodeService.validatePinCode(
+            user.getId(), 
+            code
+        );
+
+        return jwtService.generateToken(user.getEmail());
     }
 
     @Override
     public Boolean resetPassword(String token, String newPassword) {
-        // In a real application, you would verify the token and then update the
-        // password.
-        // Firebase Admin SDK does not directly support verifying password reset tokens
-        // generated by generatePasswordResetLink.
-        // This token is meant to be used on the client-side with Firebase client SDK.
-        // For this example, we'll assume the token is valid and update the user's
-        // password directly in Firebase.
+        String email = jwtService.validateToken(token);
+
         try {
-            // Assuming the token is actually the user's UID for simplicity in this example
-            // In a real scenario, you'd have a custom token verification mechanism
-            UserRecord userRecord = firebaseAuth.getUser(token);
+            UserRecord userRecord = firebaseAuth.getUser(email);
             firebaseAuth.updateUser(new UserRecord.UpdateRequest(userRecord.getUid()).setPassword(newPassword));
-
-            User user = userRepository.findByEmail(userRecord.getEmail())
-                    .orElseThrow(() -> new NotFoundException("user-not-found",
-                            messageSource.getMessage("auth.user.not.found", null, LocaleContextHolder.getLocale())));
-            user.setPassword("********"); // Update local password representation if needed
-            userRepository.save(user);
-
             return true;
 
         } catch (FirebaseAuthException e) {
             throw new ConflictException("invalid-or-expired-token", messageSource.getMessage(
                     "auth.invalid.or.expired.token", new Object[] { e.getMessage() }, LocaleContextHolder.getLocale()));
+        }
+    }
+
+    @Override
+    public AuthResponseDTO refreshToken(String refreshToken) {
+        try {
+            FirebaseRefreshResponseDTO  token = firebaseAuthService.refreshIdToken(refreshToken);
+
+            var refresh = RefreshTokenDTO.builder()
+                    .token(token.getRefreshToken())
+                    .expiresIn(LocalDateTime.now().plusMinutes(60))
+                    .timestamp(LocalDateTime.now())
+                    .userId(token.getUserId())
+                    .build();
+
+            return AuthResponseDTO.builder()
+                    .accessToken(token.getIdToken())
+                    .refreshToken(refresh)
+                    .build();
+
+        } catch (Exception e) {
+            throw new ConflictException("invalid-refresh-token", messageSource.getMessage("auth.invalid.refresh.token",
+                    new Object[] { e.getMessage() }, LocaleContextHolder.getLocale()));
         }
     }
 
@@ -366,7 +317,6 @@ public class AuthServiceImpl implements AuthService {
     public UserResponseDTO getUserByToken(String token) {
         try {
             FirebaseToken decodedToken = firebaseAuth.verifyIdToken(token);
-            String uid = decodedToken.getUid();
             System.out.println(decodedToken.getEmail());
             User user = userRepository.findByEmail(decodedToken.getEmail())
                     .orElseThrow(() -> new NotFoundException("user-not-found",

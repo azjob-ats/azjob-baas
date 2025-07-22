@@ -18,6 +18,7 @@ import com.app.boot_app.domain.auth.dto.SendVerificationCodeRequestDTO;
 import com.app.boot_app.domain.auth.dto.SignInRequestDTO;
 import com.app.boot_app.domain.auth.dto.SignUpRequestDTO;
 import com.app.boot_app.domain.auth.dto.UserResponseDTO;
+import com.app.boot_app.domain.auth.dto.ValidatePinForUpdatePasswordRequestDTO;
 import com.app.boot_app.domain.auth.dto.VerifyAccountRequestDTO;
 import com.app.boot_app.domain.auth.exception.BadRequestException;
 import com.app.boot_app.domain.auth.service.AuthService;
@@ -52,8 +53,8 @@ public class AuthController {
 
     @PostMapping("/sign-up-with-email-and-password")
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<AuthResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO) {
-        AuthResponseDTO result = authService.signUp(signUpRequestDTO);
+    public ApiResponse<Boolean> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO) {
+        Boolean result = authService.signUp(signUpRequestDTO);
         String message = messageSource.getMessage("auth.user.created", null, LocaleContextHolder.getLocale());
         return Response.ok(message, result);
     }
@@ -66,9 +67,9 @@ public class AuthController {
     }
 
     @PostMapping("/verify-account")
-    public ApiResponse<AuthResponseDTO> verifyAccount(
+    public ApiResponse<Boolean> verifyAccount(
             @Valid @RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
-        AuthResponseDTO result = authService.verifyAccount(verifyAccountRequestDTO);
+        Boolean result = authService.verifyAccount(verifyAccountRequestDTO);
         return Response.ok(
                 messageSource.getMessage("auth.account.verified", null, LocaleContextHolder.getLocale()),
                 result);
@@ -95,6 +96,14 @@ public class AuthController {
         AuthResponseDTO result = authService.refreshToken(request.getRefreshToken());
         return Response.ok(messageSource.getMessage("auth.token.refreshed", null, LocaleContextHolder.getLocale()),
                 result);
+    }
+
+    @PostMapping("/validate-pin-for-update-password")
+    public ApiResponse<String> validatePinForUpdatePassword(@Valid @RequestBody ValidatePinForUpdatePasswordRequestDTO request) {
+        String result = authService.validatePinForUpdatePassword(request.getCode(), request.getEmail());
+        return Response.ok(
+            messageSource.getMessage("auth.password.reset.link.sent", null, LocaleContextHolder.getLocale()),
+            result);
     }
 
     @PostMapping("/forgot-password")

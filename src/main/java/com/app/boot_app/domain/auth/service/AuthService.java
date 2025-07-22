@@ -7,13 +7,14 @@ import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 import com.app.boot_app.domain.auth.dto.VerifyAccountRequestDTO;
 
 public interface AuthService {
-    AuthResponseDTO signUp(SignUpRequestDTO signUpRequestDTO);
+    Boolean signUp(SignUpRequestDTO signUpRequestDTO);
     AuthResponseDTO signIn(SignInRequestDTO signInRequestDTO);
-    AuthResponseDTO verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO);
+    Boolean verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO);
     Boolean sendVerificationCode(String email);
-    boolean resendVerificationCode(String email);
+    Boolean resendVerificationCode(String email);
     AuthResponseDTO refreshToken(String refreshToken);
     Boolean forgotPassword(String email);
     Boolean resetPassword(String token, String newPassword);
     UserResponseDTO getUserByToken(String token);
+    String validatePinForUpdatePassword(String code, String email);
 }
