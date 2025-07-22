@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Schema(description = "Response DTO for user information")
@@ -54,7 +55,7 @@ public class UserResponseDTO {
     private String zipCode;
 
     @Schema(description = "Role assigned to the user")
-    private Role role;
+    private UUID roleId;
 
     @Schema(description = "Time zone", example = "America/Sao_Paulo")
     private String timeZone;

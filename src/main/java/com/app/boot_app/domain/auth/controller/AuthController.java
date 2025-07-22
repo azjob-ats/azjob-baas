@@ -42,23 +42,11 @@ public class AuthController {
     @GetMapping("/user")
     public ApiResponse<UserResponseDTO> user(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
-
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            throw new BadRequestException(
-                "auth/token-invalid",
-                messageSource.getMessage(
-                    "auth.token.missing-or-invalid", 
-                    null,
-                    LocaleContextHolder.getLocale()
-                )
-            );
-        }
-
         String idToken = authorizationHeader.substring(7);
-        System.out.println(idToken);
         UserResponseDTO result = authService.getUserByToken(idToken);
-        
-        String message = messageSource.getMessage("auth.user.found-with-success", null, LocaleContextHolder.getLocale());
+
+        String message = messageSource.getMessage("auth.user.found-with-success", null,
+                LocaleContextHolder.getLocale());
         return Response.ok(message, result);
     }
 
@@ -82,9 +70,8 @@ public class AuthController {
             @Valid @RequestBody VerifyAccountRequestDTO verifyAccountRequestDTO) {
         AuthResponseDTO result = authService.verifyAccount(verifyAccountRequestDTO);
         return Response.ok(
-            messageSource.getMessage("auth.account.verified", null, LocaleContextHolder.getLocale()),
-            result
-        );
+                messageSource.getMessage("auth.account.verified", null, LocaleContextHolder.getLocale()),
+                result);
     }
 
     @PostMapping("/send-verification-code")
@@ -99,9 +86,8 @@ public class AuthController {
     public ApiResponse<Boolean> resendVerificationCode(@Valid @RequestBody SendVerificationCodeRequestDTO request) {
         Boolean result = authService.resendVerificationCode(request.getEmail());
         return Response.ok(
-            messageSource.getMessage("auth.verification.code.resent", null, LocaleContextHolder.getLocale()), 
-            result
-        );
+                messageSource.getMessage("auth.verification.code.resent", null, LocaleContextHolder.getLocale()),
+                result);
     }
 
     @PostMapping("/refresh-token")
@@ -115,17 +101,15 @@ public class AuthController {
     public ApiResponse<Boolean> forgotPassword(@Valid @RequestBody ForgotPasswordRequestDTO request) {
         Boolean result = authService.forgotPassword(request.getEmail());
         return Response.ok(
-                messageSource.getMessage("auth.password.reset.link.sent", null, LocaleContextHolder.getLocale()), 
-                result
-            );
+                messageSource.getMessage("auth.password.reset.link.sent", null, LocaleContextHolder.getLocale()),
+                result);
     }
 
     @PostMapping("/reset-password")
     public ApiResponse<Boolean> resetPassword(@Valid @RequestBody ResetPasswordRequestDTO request) {
         Boolean result = authService.resetPassword(request.getToken(), request.getNewPassword());
         return Response.ok(
-            messageSource.getMessage("auth.password.reset", null, LocaleContextHolder.getLocale()),
-            result
-        );
+                messageSource.getMessage("auth.password.reset", null, LocaleContextHolder.getLocale()),
+                result);
     }
 }
