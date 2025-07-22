@@ -264,8 +264,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserResponseDTO getUserByToken(String token) {
-        User createdBy = securityUtils.getAuthenticatedUser();
-        System.out.println(createdBy);
         var decodedToken = authAdapter.getUserByToken(token);
         User user = userRepository.findByEmail(decodedToken.getEmail())
                 .orElseThrow(() -> new NotFoundException("user-not-found",
