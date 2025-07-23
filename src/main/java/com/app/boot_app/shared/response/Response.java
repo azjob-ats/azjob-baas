@@ -25,4 +25,23 @@ public class Response {
                 .timestamp(LocalDateTime.now().toString())
                 .build();
     }
+
+    public static <T> ApiResponse<T> created(String message, T data) {
+        return ApiResponse.<T>builder()
+                .success(true)
+                .message(message)
+                .statusCode(HttpStatus.CREATED.value())
+                .data(data)
+                .timestamp(LocalDateTime.now().toString())
+                .build();
+    }
+
+    public static ApiResponse<Void> noContent() {
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .message("No content")
+                .statusCode(HttpStatus.NO_CONTENT.value())
+                .timestamp(LocalDateTime.now().toString())
+                .build();
+    }
 }

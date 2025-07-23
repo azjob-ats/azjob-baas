@@ -57,14 +57,13 @@ CREATE TABLE public.recruiter (
 
 CREATE TABLE public.action (
     id UUID PRIMARY KEY,
-    is_deleted boolean NOT NULL,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) NOT NULL,
+    description TEXT
 );
 
 CREATE TABLE public.role (
     id UUID PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    is_deleted boolean NOT NULL,
     description TEXT
 );
 
@@ -87,10 +86,10 @@ CREATE TABLE public.permission (
 );
 
 CREATE TABLE public.user_group (
+    id UUID PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES public.users(id),
     group_id UUID NOT NULL REFERENCES public."group"(id),
-    is_deleted boolean NOT NULL,
-    PRIMARY KEY (user_id, group_id)
+    is_deleted boolean NOT NULL
 );
 
 ALTER TABLE public.pin_codes
@@ -145,6 +144,6 @@ INSERT INTO role (id, name, description) VALUES
 ('19191919-1919-1919-1919-191919191919', 'HR Administrative Assistant', 'Focuses on internal controls, registrations and support for selection processes'),
 ('20202020-2020-2020-2020-202020202020', 'Candidate Support Operator', 'Answers questions, confirms attendance and supports candidates in the selection process'),
 ('21212121-2121-2121-2121-212121212121', 'Interview Monitor', 'Schedules, organizes and monitors in-person or online interviews'),
-('22222222-2222-2222-2222-222222222222', 'Payroll Assistant', 'Supports records and integration of new employees after selection process'),
+('22222222-2222-2222-2222-122222222222', 'Payroll Assistant', 'Supports records and integration of new employees after selection process'),
 ('23232323-2323-2323-2323-232323232323', 'Selection Technician', 'Conducts operational interviews and applies practical tests for base functions'),
 ('24242424-2424-2424-2424-242424242424', 'Internal Communication Assistant', 'Responsible for internally advertising new jobs and recruitment-related communications');
