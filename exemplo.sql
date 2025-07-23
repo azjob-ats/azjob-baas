@@ -1,9 +1,20 @@
 /*
 
+[user]
+id email            
+1 saulo@gmail.com
+2 nubank@gmail.com
+3 ana@gmail.com
 
 
+[enterprise]
+id name_enterprise  id_user          
+1  nubank           2
 
 
+[recruiter]
+id name_recruiter   id_user          
+1  ana              3
 
 
 [action] 
@@ -57,42 +68,31 @@ id funções                    Descrição
 19. Técnico de Seleção                     Conduz entrevistas operacionais e aplica testes práticos para funções de base.
 20. Assistente de Comunicação Interna      Responsável por divulgar internamente novas vagas, comunicados e ações relacionadas a recrutamento.
 
-
+[Group]
+id  grupo           descrição                                id_enterprise
+1   RH analytic     Apenas visualizar vagas                  1
+2   RH básico       Acessar e editar vagas                   1
+3   RH completo     Gerenciar processos e equipes            1
+4   Gestor técnico  Acesso técnico aos candidatos            1
+5   Recrutamento    Participar de triagens e testes          1
+6   Suporte RH      Auxiliar processos operacionais          1
 
 [permission]
-id  id_role  id_action permitido         id_enterprise  id_recruiter
-1   6        1         false             1              1
-2   6        2         false             1              1
-3   6        3         true              1              1
-4   6        4         false             1              1
-5   6        5         true              1              1
-6   6        6         false             1              1
-7   6        7         false             1              1
-8   6        8         false             1              1
-9   6        9         false             1              1
-10  6        10        false             1              1
-11  6        11        false             1              1  
-
-[Group]
-id grupo           descrição                    id_role id_enterprise
-1  RH analytic     Apenas visualizar vagas      6       1
+id  id_role  id_action permitido         id_enterprise  id_group
+1   6        1         false             1              4
+2   6        2         false             1              4
+3   6        3         true              1              4
+4   6        4         false             1              4
+5   6        5         true              1              4
+6   6        6         false             1              4
+7   6        7         false             1              4
+8   6        8         false             1              4
+9   6        9         false             1              4
+10  6        10        false             1              4
+11  6        11        false             1               
 
 [user_group]
 user_id  group_id
 1        2
-
-[user]
-id email            
-1 saulo@gmail.com
-2 nubank@gmail.com
-3 ana@gmail.com
-
-[enterprise]
-id name_enterprise  id_user          
-1  nubank           2
-
-[recruiter]
-id name_recruiter   id_user          
-1  ana              3
 
 */
