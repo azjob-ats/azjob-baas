@@ -23,8 +23,6 @@ Este guia apresenta os padrões de projeto, nomenclaturas e boas práticas ampla
 
 ## 3 Segurança
 
-- Autorização baseada em Roles/Scopes (`@PreAuthorize`, `@Secured`)
-
 - CORS configurado para ambientes específicos
 
 - Proteções ativas contra:
@@ -76,7 +74,6 @@ src/main/java/com/app/boot_app/
 │   │   ├── enums/
 │   │   ├── mapper/
 │   │   ├── repository/
-│   │   ├── security/
 │   │   └── service/
 │   ├── todo/
 │   │   ├── constant/
@@ -86,7 +83,6 @@ src/main/java/com/app/boot_app/
 │   │   ├── enums/
 │   │   ├── mapper/
 │   │   ├── repository/
-│   │   ├── security/
 │   │   └── service/
 └── shared/
     ├── exception/
@@ -229,3 +225,43 @@ src/main/java/com/app/boot_app/
         "timestamp": "2025-07-17T03:34:30.702Z"
     }
 ```
+
+## Prompt Genérico para criar especificação de Entidades
+
+### Especificação da Entidade `{NomeDaEntidade}`
+
+- **Nome da entidade**: `{NomeDaEntidade}`
+- **Descrição**: `{Breve descrição da entidade, explicando sua função no sistema}`
+
+- **Campos**:
+
+| Campo           | Tipo          | Obrigatório | Descrição                     | Restrições ou Observações                        |
+|-----------------|---------------|-------------|-------------------------------|--------------------------------------------------|
+| `{campo1}`      | `{tipo}`      | `{sim|não}` | `{descrição do campo}`        | `{restrições ou comportamento especial}`        |
+| `{campo2}`      | `{tipo}`      | `{sim|não}` | `{descrição do campo}`        | `{restrições ou comportamento especial}`        |
+| ...             | ...           | ...         | ...                           | ...                                              |
+
+- **Regras de validação**:
+  - Campos obrigatórios: `{campo1}`, `{campo2}`
+  - Valores padrão:
+    - `{campo}`: `{valor}`
+  - Campos não editáveis via API: `{campo1}`, `{campo2}`
+  - Campos opcionais: `{campo1}`, `{campo2}`
+  - Outras regras:
+    - `{ex: Campo 'name' deve ser único}`
+    - `{ex: Apenas usuários com permissão 'MANAGE_ENTITIES' podem criar}`
+
+- **Relacionamentos**:
+  - `@OneToMany {ClasseDestino} {nomeCampo}` – `{descrição do relacionamento}`
+  - `@ManyToOne {ClasseOrigem} {nomeCampo}` – `{descrição do relacionamento}`
+  - `{outros relacionamentos, se houver}`
+
+
+## Prompt para Especificação de Endpoints
+
+### {Nome da Funcionalidade}
+
+| Método | Endpoint                             | Descrição                         | Autenticado | Body Request (exemplo)                    |
+|--------|--------------------------------------|-----------------------------------|-------------|-------------------------------------------|
+| {GET|POST|PUT|DELETE} | `/api/v1/{rota}`               | {O que este endpoint faz}         | {sim|não}   | `{ campo1: "valor", campo2: "valor" }`   |
+| {GET|POST|PUT|DELETE} | `/api/v1/{rota}`               | {O que este endpoint faz}         | {sim|não}   | `{ campo1: "valor", campo2: "valor" }`   |

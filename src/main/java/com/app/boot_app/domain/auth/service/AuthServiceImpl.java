@@ -14,18 +14,9 @@ import com.app.boot_app.domain.auth.dto.SignInRequestDTO;
 import com.app.boot_app.domain.auth.dto.SignUpRequestDTO;
 import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 import com.app.boot_app.domain.auth.dto.VerifyAccountRequestDTO;
-import com.app.boot_app.domain.auth.entity.Group;
-import com.app.boot_app.domain.auth.entity.GroupAuditLog;
-import com.app.boot_app.domain.auth.entity.GroupMember;
-import com.app.boot_app.domain.auth.entity.Role;
 import com.app.boot_app.domain.auth.entity.User;
-import com.app.boot_app.domain.auth.enums.GroupName;
 import com.app.boot_app.domain.auth.enums.ProviderName;
-import com.app.boot_app.domain.auth.enums.RoleName;
 import com.app.boot_app.domain.auth.mapper.UserMapper;
-import com.app.boot_app.domain.auth.repository.GroupMemberRepository;
-import com.app.boot_app.domain.auth.repository.GroupRepository;
-import com.app.boot_app.domain.auth.repository.RoleRepository;
 import com.app.boot_app.domain.auth.repository.UserRepository;
 import com.app.boot_app.shared.exeception.model.BadRequestException;
 import com.app.boot_app.shared.exeception.model.ConflictException;
@@ -35,7 +26,6 @@ import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseRefresh;
 import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseSignIn;
 import com.app.boot_app.shared.infra.email.Email;
 import com.app.boot_app.shared.infra.jwt.Jwt;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,12 +34,8 @@ import lombok.RequiredArgsConstructor;
 public class AuthServiceImpl implements AuthService {
 
         private final UserRepository userRepository;
-        private final RoleRepository roleRepository;
         private final Email emailService;
         private final PinCodeService pinCodeService;
-        private final GroupRepository groupRepository;
-        private final GroupMemberRepository groupMemberRepository;
-        private final GroupAuditLogService groupAuditLogService;
         private final MessageSource messageSource;
         private final UserMapper userMapper;
         private final AuthAdapter authAdapter;
@@ -77,49 +63,7 @@ public class AuthServiceImpl implements AuthService {
                 user.setLastName(signUpRequestDTO.getLastName());
                 user.setUsername(createUsername(signUpRequestDTO.getEmail()));
 
-                Role defaultRole = roleRepository.findByName(RoleName.USER.getName())
-                                .orElseGet(() -> {
-                                        Role newRole = new Role();
-                                        newRole.setName(RoleName.USER.getName());
-                                        newRole.setDescription(RoleName.USER.getDescription());
-                                        newRole.setIsDefault(true);
-                                        newRole.setLevel(RoleName.USER.getLevel());
-                                        newRole.setCreatedAt(LocalDateTime.now());
-                                        newRole.setUpdatedAt(LocalDateTime.now());
-                                        return roleRepository.save(newRole);
-                                });
-                user.setRole(defaultRole);
-
                 User registeredUser = userRepository.save(user);
-
-                Group defaultGroup = groupRepository.findByName(GroupName.DEFAULT_GROUP.getName())
-                                .orElseGet(() -> {
-                                        Group newGroup = new Group();
-                                        newGroup.setName(GroupName.DEFAULT_GROUP.getName());
-                                        newGroup.setDescription(GroupName.DEFAULT_GROUP.getDescription());
-                                        newGroup.setIsActive(true);
-                                        newGroup.setCreatedAt(LocalDateTime.now());
-                                        newGroup.setUpdatedAt(LocalDateTime.now());
-                                        newGroup.setCreatedBy(user); // Now user has an ID
-                                        return groupRepository.save(newGroup);
-                                });
-
-                GroupMember groupMember = new GroupMember();
-                groupMember.setGroup(defaultGroup);
-                groupMember.setUser(user);
-                groupMember.setAssignedRole(defaultRole);
-                groupMember.setJoinedAt(LocalDateTime.now());
-                groupMember.setIsActive(true);
-                groupMemberRepository.save(groupMember);
-
-                GroupAuditLog auditLog = new GroupAuditLog();
-                auditLog.setGroup(defaultGroup);
-                auditLog.setAction(GroupAuditLog.Action.USER_CREATED.name());
-                auditLog.setPerformedBy(user);
-                auditLog.setPerformedAt(LocalDateTime.now());
-                auditLog.setTargetUser(user);
-                auditLog.setNewValue(JsonNodeFactory.instance.objectNode().put("email", user.getEmail()).toString());
-                groupAuditLogService.createAuditLog(auditLog);
                 sendVerificationCode(registeredUser.getEmail());
                 return true;
 

@@ -53,9 +53,6 @@ public class UserResponseDTO {
     @Schema(description = "Zip Code", example = "01000-000")
     private String zipCode;
 
-    @Schema(description = "Role assigned to the user")
-    private UUID roleId;
-
     @Schema(description = "Time zone", example = "America/Sao_Paulo")
     private String timeZone;
 

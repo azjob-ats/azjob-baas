@@ -1,191 +1,7 @@
 # 1. feature: Authentication
 
 ## Descrição
-
 Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RESTful completas, utilizando Spring Boot. A entidade deve ser protegida por autenticação e autorização baseada em roles.
-
-## Especificação da Entidade `Group`
-
-- **Nome da entidade**: `Group`
-- **Descrição**: Representa um grupo organizacional que agrega usuários com funções e permissões comuns (ex: RH, TI, Financeiro)
-
-- **Campos**:
-
-| Campo           | Tipo          | Obrigatório | Descrição                | Restrições                               |
-|-----------------|---------------|-------------|---------------------------|------------------------------------------|
-| id              | UUID          | sim         | Identificador único       | Gerado automaticamente                   |
-| name            | VARCHAR(100)  | sim         | Nome do grupo             | Único, mínimo 3 caracteres               |
-| description     | TEXT          | não         | Descrição do grupo        | Máximo 1000 caracteres                   |
-| default_role_id | UUID          | não         | Função padrão do grupo    | Referência a roles(id)                   |
-| created_at      | TIMESTAMP     | sim         | Data de criação           | Valor padrão: CURRENT_TIMESTAMP          |
-| updated_at      | TIMESTAMP     | sim         | Data de atualização       | Atualizado automaticamente               |
-| created_by      | UUID          | sim         | Criador do grupo          | Referência a users(id)                   |
-| is_active       | BOOLEAN       | sim         | Status do grupo           | Valor padrão: TRUE                       |
-
-
-- **Regras de validação**:
-  - Campos obrigatórios: name, created_by
-  - Valores padrão: 
-    - is_active: true
-    - created_at: now()
-  - Campos não editáveis via API: id, created_at, created_by
-  - Campos opcionais: description, default_role_id
-  - Outras regras:
-    - Nome deve ser único no sistema
-    - Apenas usuários com permissão 'MANAGE_GROUPS' podem criar grupos
-
-- **Relacionamento**:
-  - `@OneToMany GroupMember members` (um grupo tem muitos membros)
-  - `@ManyToOne User createdBy` (grupo criado por um usuário)
-  - `@ManyToOne Role defaultRole` (função padrão do grupo)
-
----
-
-## Especificação da Entidade `GroupMember`
-
-- **Nome da entidade**: `GroupMember`
-- **Descrição**: Representa a associação entre um usuário e um grupo, podendo ter funções específicas
-
-- **Campos**:
-
-| Campo                | Tipo          | Obrigatório | Descrição                             | Restrições                                    |
-|----------------------|---------------|-------------|---------------------------------------|-----------------------------------------------|
-| id                   | UUID          | sim         | Identificador único                   | Gerado automaticamente                        |
-| group_id             | UUID          | sim         | Grupo associado                       | Referência a groups(id) com ON DELETE CASCADE |
-| user_id              | UUID          | sim         | Usuário membro                        | Referência a users(id) com ON DELETE CASCADE  |
-| assigned_role_id     | UUID          | não         | Função específica do membro           | Referência a roles(id)                        |
-| joined_at            | TIMESTAMP     | sim         | Data de entrada no grupo              | Valor padrão: CURRENT_TIMESTAMP               |
-| invited_by           | UUID          | não         | Usuário que convidou                  | Referência a users(id)                        |
-| invitation_expires_at| TIMESTAMP     | não         | Data de expiração do convite          |                                               |
-| is_active            | BOOLEAN       | sim         | Status do membro                      | Valor padrão: TRUE                            |
-
-- **Regras de validação**:
-  - Campos obrigatórios: group_id, user_id
-  - Valores padrão:
-    - joined_at: now()
-    - is_active: true
-  - Campos não editáveis via API: id, joined_at
-  - Campos opcionais: assigned_role_id, invited_by, invitation_expires_at
-  - Outras regras:
-    - Um usuário não pode ser membro do mesmo grupo mais de uma vez
-    - Se invitation_expires_at for definido, deve ser no futuro
-
-- **Relacionamento**:
-  - `@ManyToOne Group group` (membro pertence a um grupo)
-  - `@ManyToOne User user` (membro é um usuário)
-  - `@ManyToOne Role assignedRole` (função específica do membro)
-
----
-
-## Especificação da Entidade `GroupAuditLog`
-
-- **Nome da entidade**: `GroupAuditLog`
-- **Descrição**: Registra todas as ações significativas realizadas em grupos para auditoria e rastreamento
-
-- **Campos**:
-
-| Campo           | Tipo          | Obrigatório | Descrição                          | Restrições                                    |
-|-----------------|---------------|-------------|------------------------------------|-----------------------------------------------|
-| id              | UUID          | sim         | Identificador único                | Gerado automaticamente                        |
-| group_id        | UUID          | sim         | Grupo auditado                     | Referência a groups(id) com ON DELETE CASCADE |
-| action          | VARCHAR(50)   | sim         | Tipo de ação                       | Valores: ADD_MEMBER, REMOVE_MEMBER, UPDATE_GROUP |
-| performed_by    | UUID          | sim         | Usuário que executou a ação        | Referência a users(id)                        |
-| performed_at    | TIMESTAMP     | sim         | Data da ação                       | Valor padrão: CURRENT_TIMESTAMP               |
-| target_user_id  | UUID          | não         | Usuário afetado                    | Referência a users(id)                        |
-| old_value       | JSONB         | não         | Valor anterior                     |                                               |
-| new_value       | JSONB         | não         | Novo valor                         |                                               |
-| ip_address      | VARCHAR(45)   | não         | IP de origem                       |                                               |
-
-- **Regras de validação**:
-  - Campos obrigatórios: group_id, action, performed_by
-  - Valores padrão: performed_at: now()
-  - Campos não editáveis via API: id, performed_at
-  - Campos opcionais: target_user_id, old_value, new_value, ip_address
-  - Outras regras:
-    - Ação deve ser um dos tipos pré-definidos
-    - old_value e new_value devem ser objetos JSON válidos
-
-- **Relacionamento**:
-  - `@ManyToOne Group group` (log pertence a um grupo)
-  - `@ManyToOne User performedBy` (ação realizada por um usuário)
-  - `@ManyToOne User targetUser` (usuário afetado pela ação)
-
----
-
-## Especificação da Entidade `GroupInvitation`
-
-- **Nome da entidade**: `GroupInvitation`
-- **Descrição**: Gerencia convites para usuários ingressarem em grupos com prazos de validade
-
-- **Campos**:
-
-| Campo       | Tipo          | Obrigatório | Descrição                          | Restrições                                    |
-|-------------|---------------|-------------|------------------------------------|-----------------------------------------------|
-| id          | UUID          | sim         | Identificador único                | Gerado automaticamente                        |
-| group_id    | UUID          | sim         | Grupo convidado                    | Referência a groups(id) com ON DELETE CASCADE |
-| email       | VARCHAR(255)  | sim         | E-mail do convidado                | Formato válido                                |
-| token       | VARCHAR(100)  | sim         | Token único do convite             |                                               |
-| role_id     | UUID          | não         | Função sugerida                    | Referência a roles(id)                        |
-| invited_by  | UUID          | sim         | Usuário que enviou o convite       | Referência a users(id)                        |
-| created_at  | TIMESTAMP     | sim         | Data de criação                    | Valor padrão: CURRENT_TIMESTAMP               |
-| expires_at  | TIMESTAMP     | sim         | Data de expiração                  | Padrão: CURRENT_TIMESTAMP + 7 dias            |
-| status      | VARCHAR(20)   | sim         | Status do convite                  | Valores: PENDING, ACCEPTED, EXPIRED           |
-
-- **Regras de validação**:
-  - Campos obrigatórios: group_id, email, invited_by
-  - Valores padrão:
-    - created_at: now()
-    - expires_at: now() + 7 dias
-    - status: 'PENDING'
-  - Campos não editáveis via API: id, created_at, token
-  - Campos opcionais: role_id
-  - Outras regras:
-    - Token deve ser único e gerado automaticamente
-    - Não pode convidar o mesmo e-mail para o mesmo grupo mais de uma vez com status PENDING
-
-- **Relacionamento**:
-  - `@ManyToOne Group group` (convite para um grupo)
-  - `@ManyToOne User invitedBy` (convite enviado por um usuário)
-  - `@ManyToOne Role role` (função sugerida)
-
----
-
-## Especificação da Entidade `Role`
-
-- **Nome da entidade**: `Role`
-- **Descrição**: Define funções com conjuntos específicos de permissões que podem ser atribuídas a usuários ou grupos
-
-- **Campos**:
-
-| Campo          | Tipo           | Obrigatório | Descrição                                       | Restrições                           |
-|----------------|----------------|-------------|-------------------------------------------------|--------------------------------------|
-| id             | UUID           | sim         | Identificador único da role                     | Gerado automaticamente               |
-| name           | VARCHAR(100)   | sim         | Nome da role                                    | Único, min 3 caracteres              |
-| description    | VARCHAR(255)   | não         | Descrição das permissões da role                | Máximo 255 caracteres                |
-| permissions    | VARCHAR[]      | sim         | Lista de permissões                             | Valores pré-definidos                |
-| is_default     | BOOLEAN        | sim         | Se é atribuída a novos usuários                 | Padrão: true                        |
-| level          | INTEGER        | sim         | Nível hierárquico da role                       | 1-100                                |
-| created_at     | TIMESTAMP      | sim         | Data de criação                                 | Valor padrão: CURRENT_TIMESTAMP      |
-| updated_at     | TIMESTAMP      | sim         | Data da última atualização                      | Atualizado automaticamente           |
-
-- **Regras de validação**:
-  - Campos obrigatórios: name, permissions
-  - Valores padrão:
-    - is_default: true
-    - created_at: now() 
-    - level: 1
-  - Campos não editáveis via API: id, created_at
-  - Campos opcionais: description
-  - Outras regras:
-    - Nome deve ser em UPPERCASE e único
-    - Permissões devem ser validadas contra enum pré-definido
-    - Roles com nível maior podem modificar roles com nível menor
-
-- **Relacionamento**:
-  - `@OneToMany User users` (usuários com esta role)
-  - `@OneToMany Group groups` (grupos que usam esta role como padrão)
-
----
 
 ## Especificação da Entidade `User`
 
@@ -305,6 +121,162 @@ Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RE
 
 ---
 
+## Especificação da Entidade `UserGroup`
+
+- **Nome da entidade**: `UserGroup`
+- **Descrição**: Representa a associação entre um usuário e um grupo dentro de uma empresa. Quais grupos o usuario pertence.
+
+- **Campos**:
+
+| Campo    | Tipo | Obrigatório | Descrição                       | Restrições ou Observações     |
+|----------|------|-------------|---------------------------------|-------------------------------|
+| user_id  | UUID | sim         | Referência ao usuário           | FK para `users(id)`           |
+| group_id | UUID | sim         | Referência ao grupo             | FK para `group(id)`           |
+
+- **Regras de validação**:
+  - Campos obrigatórios: `user_id`, `group_id`
+  - Chave primária composta: (`user_id`, `group_id`)
+
+- **Relacionamentos**:
+  - `@ManyToOne users user` – Usuário associado ao grupo
+  - `@ManyToOne group group` – Grupo ao qual o usuário pertence
+
+## Especificação da Entidade `Permission`
+
+- **Nome da entidade**: `Permission`
+- **Descrição**: Define se um grupo tem permissão para executar uma ação específica dentro de uma empresa, baseado no papel do usuário.
+
+- **Campos**:
+
+| Campo         | Tipo   | Obrigatório | Descrição                            | Restrições ou Observações                   |
+|---------------|--------|-------------|--------------------------------------|---------------------------------------------|
+| id            | UUID   | sim         | Identificador da permissão           | Gerado automaticamente                      |
+| id_role       | UUID   | sim         | Papel relacionado                    | FK para `role(id)`                          |
+| id_action     | UUID   | sim         | Ação permitida ou não                | FK para `action(id)`                        |
+| allowed     | BOOLEAN| sim         | Define se a ação é permitida         | Valor padrão: FALSE                         |
+| id_enterprise | UUID   | sim         | Empresa relacionada à permissão      | FK para `enterprise(id)`                    |
+| id_group      | UUID   | não         | Grupo ao qual se aplica a permissão  | FK para `group(id)`                         |
+
+- **Regras de validação**:
+  - Campos obrigatórios: `id_role`, `id_action`, `permitido`, `id_enterprise`
+  - Campos não editáveis via API: `id`
+
+- **Relacionamentos**:
+  - `@ManyToOne role role` – Permissão está ligada a um papel
+  - `@ManyToOne action action` – Permissão está ligada a uma ação
+  - `@ManyToOne group group` – (opcional) permissão pode ser limitada a um grupo
+
+## Especificação da Entidade `Group`
+
+- **Nome da entidade**: `Group`
+- **Descrição**: Representa um grupo organizacional que agrega usuários com permissões em comum dentro de uma empresa.
+
+- **Campos**:
+
+| Campo         | Tipo          | Obrigatório | Descrição                     | Restrições ou Observações          |
+|---------------|---------------|-------------|-------------------------------|------------------------------------|
+| id            | UUID          | sim         | Identificador do grupo        | Gerado automaticamente             |
+| name          | VARCHAR(100)  | sim         | Nome do grupo                 | Deve ser único por empresa         |
+| description   | TEXT          | não         | Descrição do grupo            |                                    |
+| id_enterprise | UUID          | sim         | Empresa a que o grupo pertence| FK para `enterprise(id)`          |
+
+- **Regras de validação**:
+  - Campos obrigatórios: `name`, `id_enterprise`
+  - Campos não editáveis via API: `id`
+  - Outras regras:
+    - Nome deve ser único dentro da mesma empresa
+
+- **Relacionamentos**:
+  - `@ManyToOne enterprise enterprise` – Grupo pertence a uma empresa
+  - `@OneToMany permission permissions` – Grupo pode ter várias permissões
+  - `@OneToMany user_group users` – Vários usuários podem pertencer ao grupo
+
+## Especificação da Entidade `Role`
+
+- **Nome da entidade**: `Role`
+- **Descrição**: Representa o papel ou função do usuário dentro de uma organização (ex: gestor, colaborador, convidado).
+
+- **Campos**:
+
+| Campo      | Tipo          | Obrigatório | Descrição                     | Restrições ou Observações    |
+|------------|---------------|-------------|-------------------------------|------------------------------|
+| id         | UUID          | sim         | Identificador do papel        | Gerado automaticamente       |
+| name       | VARCHAR(100)  | sim         | Nome do papel                 | Deve ser único               |
+| description| TEXT          | não         | Descrição da função/papel     |                              |
+
+- **Regras de validação**:
+  - Campos obrigatórios: `name`
+  - Campos não editáveis via API: `id`
+  - Outras regras:
+    - Nome deve ser único
+
+- **Relacionamentos**:
+  - `@OneToMany permission permissions` – Um papel pode ter várias permissões
+
+## Especificação da Entidade `Action`
+
+- **Nome da entidade**: `Action`
+- **Descrição**: Define ações específicas que podem ser permitidas ou negadas dentro da estrutura de permissões (ex: criar vaga, visualizar vaga).
+
+- **Campos**:
+
+| Campo | Tipo         | Obrigatório | Descrição              | Restrições ou Observações        |
+|-------|--------------|-------------|------------------------|----------------------------------|
+| id    | UUID         | sim         | Identificador da ação  | Gerado automaticamente           |
+| name  | VARCHAR(255) | sim         | Nome da ação           | Deve ser único                   |
+
+- **Regras de validação**:
+  - Campos obrigatórios: `name`
+  - Campos não editáveis via API: `id`
+  - Outras regras:
+    - Nome deve ser único
+
+- **Relacionamentos**:
+  - `@OneToMany permission permissions` – A ação pode ser associada a várias permissões
+
+## Especificação da Entidade `Recruiter`
+
+- **Nome da entidade**: `Recruiter`
+- **Descrição**: Representa um recrutador vinculado a uma empresa, com permissões específicas no processo de recrutamento.
+
+- **Campos**:
+
+| Campo           | Tipo         | Obrigatório | Descrição                         | Restrições ou Observações                |
+|-----------------|--------------|-------------|-----------------------------------|------------------------------------------|
+| id              | UUID         | sim         | Identificador único               | Gerado automaticamente                   |
+| name_recruiter  | VARCHAR(255) | sim         | Nome do recrutador                |                                          |
+| id_user         | UUID         | sim         | Referência ao usuário             | FK para `users(id)`                      |
+
+- **Regras de validação**:
+  - Campos obrigatórios: `name_recruiter`, `id_user`
+  - Campos não editáveis via API: `id`
+
+- **Relacionamentos**:
+  - `@ManyToOne users user` – Referência ao usuário
+
+## Especificação da Entidade `Enterprise`
+
+- **Nome da entidade**: `Enterprise`
+- **Descrição**: Representa uma empresa que possui uma conta na plataforma, podendo cadastrar recrutadores, grupos e gerenciar permissões.
+
+- **Campos**:
+
+| Campo           | Tipo         | Obrigatório | Descrição                         | Restrições ou Observações                |
+|-----------------|--------------|-------------|-----------------------------------|------------------------------------------|
+| id              | UUID         | sim         | Identificador único da empresa    | Gerado automaticamente                   |
+| name_enterprise | VARCHAR(255) | sim         | Nome da empresa                   | Deve ser único                           |
+| id_user         | UUID         | sim         | Usuário responsável pela empresa  | FK para `users(id)`                      |
+
+- **Regras de validação**:
+  - Campos obrigatórios: `name_enterprise`, `id_user`
+  - Campos não editáveis via API: `id`
+  - Outras regras:
+    - O nome da empresa deve ser único
+
+- **Relacionamentos**:
+  - `@ManyToOne users owner` – Usuário dono da empresa
+  - `@OneToMany group groups` – Empresa pode conter vários grupos
+
 ## API Endpoints
 
 ### PIN Code
@@ -327,58 +299,84 @@ Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RE
 | POST   | `/api/v1/auth/forgot-password`                      | Solicitar reset de senha           | não          | `{email: "user@ex.com"}`                               |
 | POST   | `/api/v1/auth/reset-password`                       | Resetar senha                      | não          | `{token: "xyz", newPassword: "new123"}`                |
 
+### user_group
+| Método | Endpoint             | Descrição                                 | Autenticado | Body Request (exemplo)          |
+| ------ | -------------------- | ----------------------------------------- | ----------- | ------------------------------- |
+| GET    | `/api/v1/user-group` | Lista os grupos que o usuário pertence    | sim         | —                               |
+| POST   | `/api/v1/user-group` | Adiciona o usuário autenticado a um grupo | sim         | `{ group_id: "uuid-do-grupo" }` |
+| DELETE | `/api/v1/user-group` | Remove o usuário autenticado de um grupo  | sim         | `{ group_id: "uuid-do-grupo" }` |
 
-### Grupos (Groups)
+### permission
+| Método | Endpoint                  | Descrição                                              | Autenticado | Body Request (exemplo)                                  |
+| ------ | ------------------------- | ------------------------------------------------------ | ----------- | ------------------------------------------------------- |
+| GET    | `/api/v1/permissions`     | Lista permissões do grupo do usuário autenticado       | sim         | —                                                       |
+| POST   | `/api/v1/permissions`     | Cria nova permissão dentro do grupo atual (admin only) | sim         | `{ id_role: "...", id_action: "...", permitido: true }` |
+| PUT    | `/api/v1/permissions/:id` | Atualiza uma permissão específica                      | sim         | `{ permitido: false }`                                  |
+| DELETE | `/api/v1/permissions/:id` | Remove uma permissão específica                        | sim         | —                                                       |
 
-| Método | Endpoint                        | Descrição                          | Autenticado | Permissão Requerida          |
-|--------|---------------------------------|------------------------------------|-------------|------------------------------|
-| GET    | `/api/v1/groups`                | Listar todos grupos                | sim          | `groups:read`               |
-| GET    | `/api/v1/groups/:id`            | Obter grupo por ID                 | sim          | `groups:read`               |
-| POST   | `/api/v1/groups`                | Criar novo grupo                   | sim          | `groups:create`             |
-| PUT    | `/api/v1/groups/:id`            | Atualizar grupo                    | sim          | `groups:update`             |
-| DELETE | `/api/v1/groups/:id`            | Excluir grupo                      | sim          | `groups:delete`             |
-| GET    | `/api/v1/groups/:id/members`    | Listar membros do grupo            | sim          | `groups:read`               |
+### group
+| Método | Endpoint             | Descrição                                    | Autenticado | Body Request (exemplo)                       |
+| ------ | -------------------- | -------------------------------------------- | ----------- | -------------------------------------------- |
+| GET    | `/api/v1/groups`     | Lista grupos da empresa vinculada ao usuário | sim         | —                                            |
+| POST   | `/api/v1/groups`     | Cria novo grupo para a empresa do usuário    | sim         | `{ name: "RH", description: "Grupo de RH" }` |
+| PUT    | `/api/v1/groups/:id` | Atualiza informações do grupo                | sim         | `{ name: "RH Básico" }`                      |
+| DELETE | `/api/v1/groups/:id` | Remove um grupo da empresa                   | sim         | —                                            |
 
-### Membros de Grupos (Group Members)
+### role
+| Método | Endpoint            | Descrição                          | Autenticado | Body Request (exemplo) |
+| ------ | ------------------- | ---------------------------------- | ----------- | ---------------------- |
+| GET    | `/api/v1/roles`     | Lista todas as funções disponíveis | sim         | —                      |
+| GET    | `/api/v1/roles/:id` | Retorna detalhes de uma função     | sim         | —                      |
 
-| Método | Endpoint                                | Descrição                          | Autenticado  | Permissão Requerida         |
-|--------|-----------------------------------------|------------------------------------|--------------|-----------------------------|
-| POST   | `/api/v1/groups/:groupId/members`       | Adicionar membro ao grupo          | sim          | `group-members:create`      |
-| PUT    | `/api/v1/groups/:groupId/members/:userId` | Atualizar função do membro       | sim          | `group-members:update`      |
-| DELETE | `/api/v1/groups/:groupId/members/:userId` | Remover membro do grupo          | sim          | `group-members:delete`      |
+### action
+| Método | Endpoint              | Descrição                       | Autenticado | Body Request (exemplo) |
+| ------ | --------------------- | ------------------------------- | ----------- | ---------------------- |
+| GET    | `/api/v1/actions`     | Lista todas as ações possíveis  | sim         | —                      |
+| GET    | `/api/v1/actions/:id` | Detalhes de uma ação específica | sim         | —                      |
 
-### Convites (Group Invitations)
+### recruiter
+| Método | Endpoint            | Descrição                                   | Autenticado | Body Request (exemplo)            |
+| ------ | ------------------- | ------------------------------------------- | ----------- | --------------------------------- |
+| GET    | `/api/v1/recruiter` | Visualiza dados do recrutador autenticado   | sim         | —                                 |
+| POST   | `/api/v1/recruiter` | Cria recrutador (caso não exista)           | sim         | `{ name_recruiter: "Ana" }`       |
+| PUT    | `/api/v1/recruiter` | Atualiza os dados do recrutador autenticado | sim         | `{ name_recruiter: "Ana Maria" }` |
 
-| Método | Endpoint                                | Descrição                          | Autenticado  | Permissão Requerida         |
-|--------|-----------------------------------------|------------------------------------|--------------|-----------------------------|
-| POST   | `/api/v1/groups/:groupId/invitations`   | Enviar convite para grupo          | sim          | `invitations:create`        |
-| GET    | `/api/v1/invitations/:token`            | Validar token de convite           | não          | -                           |
-| POST   | `/api/v1/invitations/:token/accept`     | Aceitar convite                    | sim          | -                           |
-| DELETE | `/api/v1/invitations/:id`               | Cancelar convite                   | sim          | `invitations:delete`        |
+### enterprise
+| Método | Endpoint             | Descrição                             | Autenticado | Body Request (exemplo)                     |
+| ------ | -------------------- | ------------------------------------- | ----------- | ------------------------------------------ |
+| GET    | `/api/v1/enterprise` | Retorna os dados da empresa vinculada | sim         | —                                          |
+| POST   | `/api/v1/enterprise` | Cria empresa vinculada ao usuário     | sim         | `{ name_enterprise: "Nubank" }`            |
+| PUT    | `/api/v1/enterprise` | Atualiza dados da empresa             | sim         | `{ name_enterprise: "Nubank Tecnologia" }` |
 
-### Funções (Roles)
 
-| Método | Endpoint                        | Descrição                          | Autenticado | Permissão Requerida         |
-|--------|---------------------------------|------------------------------------|-------------|-----------------------------|
-| GET    | `/api/v1/roles`                 | Listar todas funções               | sim          | `roles:read`                |
-| GET    | `/api/v1/roles/:id`             | Obter função por ID                | sim          | `roles:read`                |
-| POST   | `/api/v1/roles`                 | Criar nova função                  | sim          | `roles:create`              |
-| PUT    | `/api/v1/roles/:id`             | Atualizar função                   | sim          | `roles:update`              |
-| DELETE | `/api/v1/roles/:id`             | Excluir função                     | sim          | `roles:delete`              |
+### Observações gerais:
+- O group_id (e outros dados sensíveis como enterprise_id) não são enviados no body ou query params — devem ser extraídos do token JWT no backend.
+- Todas as rotas são autenticadas.
+- O usuário só pode acessar dados vinculados a ele.
 
-### Logs de Auditoria (Audit Logs)
 
-| Método | Endpoint                        | Descrição                          | Autenticado | Permissão Requerida         |
-|--------|---------------------------------|------------------------------------|-------------|-----------------------------|
-| GET    | `/api/v1/audit-logs`            | Listar logs de auditoria           | sim          | `audit-logs:read`           |
-| GET    | `/api/v1/audit-logs/:id`        | Obter log específico               | sim          | `audit-logs:read`           |
-| GET    | `/api/v1/groups/:id/audit-logs` | Listar logs de um grupo            | sim          | `audit-logs:read`           |
+
 
 ## Autenticação, Autorização, Refresh-token e Token deve ser feito Firebase Admin SDK 
  - Adicionar o Firebase Admin SDK no Projeto
  - A Chave privada mantenha-o em um local seguro
- - Segue a chave privada: { "type": "", "project_id": "", "private_key_id": "", "private_key": "", "client_email": "", "client_id": "", "auth_uri": "", "token_uri": "", "auth_provider_x509_cert_url": "", "client_x509_cert_url": "", "universe_domain": "" }
- 
+ - Segue a chave privada:
+```json
+  {
+    "type":"",
+    "project_id":"",
+    "private_key_id":"",
+    "private_key":"",
+    "client_email":"",
+    "client_id":"",
+    "auth_uri":"",
+    "token_uri":"",
+    "auth_provider_x509_cert_url":"",
+    "client_x509_cert_url":"",
+    "universe_domain":"" 
+  }
+```
+
 ## Regras gerais
 
  - Após a criação da conta, deve enviar um e-mail de verificação com PIN code 
@@ -675,10 +673,6 @@ Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RE
 
 - Cada usuário pode acessar e gerenciar apenas seus próprios registros
 
-- Proteção via Spring Security + JWT
-
-- Anotações esperadas: `@PreAuthorize("hasRole('USER')")`
-
 ## Observações
 
 - Gere os arquivos com pacotes corretos
@@ -686,10 +680,6 @@ Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RE
 - Inclua validações com `javax.validation`
 
 - Use `@Transactional` nas operações críticas
-
-- Não esquecer da associação `User` na entidade
-
-- A responsabilidade do usuário deve vir do `SecurityContextHolder`
 
 - Proceda com a instalação da dependência, se aplicável
 

@@ -1,104 +1,4 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.5 (Debian 17.5-1.pgdg120+1)
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
-
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
-
---
--- Name: group_audit_logs; Type: TABLE; Schema: public; Owner: admin
---
-
-CREATE TABLE public.group_audit_logs (
-    id uuid NOT NULL,
-    action character varying(50) NOT NULL,
-    ip_address character varying(45),
-    new_value jsonb,
-    old_value jsonb,
-    performed_at timestamp(6) without time zone NOT NULL,
-    group_id uuid NOT NULL,
-    performed_by uuid NOT NULL,
-    target_user_id uuid
-);
-
-
-ALTER TABLE public.group_audit_logs OWNER TO admin;
-
---
--- Name: group_invitations; Type: TABLE; Schema: public; Owner: admin
---
-
-CREATE TABLE public.group_invitations (
-    id uuid NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    email character varying(255) NOT NULL,
-    expires_at timestamp(6) without time zone NOT NULL,
-    status character varying(20) NOT NULL,
-    token character varying(100) NOT NULL,
-    group_id uuid NOT NULL,
-    invited_by uuid NOT NULL,
-    role_id uuid,
-    CONSTRAINT group_invitations_status_check CHECK (((status)::text = ANY ((ARRAY['PENDING'::character varying, 'ACCEPTED'::character varying, 'EXPIRED'::character varying, 'CANCELLED'::character varying])::text[])))
-);
-
-
-ALTER TABLE public.group_invitations OWNER TO admin;
-
---
--- Name: group_members; Type: TABLE; Schema: public; Owner: admin
---
-
-CREATE TABLE public.group_members (
-    id uuid NOT NULL,
-    invitation_expires_at timestamp(6) without time zone,
-    is_active boolean NOT NULL,
-    joined_at timestamp(6) without time zone NOT NULL,
-    assigned_role_id uuid,
-    group_id uuid NOT NULL,
-    invited_by uuid,
-    user_id uuid NOT NULL
-);
-
-
-ALTER TABLE public.group_members OWNER TO admin;
-
---
--- Name: groups; Type: TABLE; Schema: public; Owner: admin
---
-
-CREATE TABLE public.groups (
-    id uuid NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    description text,
-    is_active boolean NOT NULL,
-    name character varying(100) NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL,
-    created_by uuid NOT NULL,
-    default_role_id uuid
-);
-
-
-ALTER TABLE public.groups OWNER TO admin;
-
---
--- Name: pin_codes; Type: TABLE; Schema: public; Owner: admin
---
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE public.pin_codes (
     id uuid NOT NULL,
@@ -107,58 +7,9 @@ CREATE TABLE public.pin_codes (
     email character varying(255) NOT NULL,
     expires_at timestamp(6) without time zone NOT NULL,
     is_used boolean NOT NULL,
-    user_id uuid NOT NULL
+    user_id uuid NOT NULL,
+    is_deleted boolean NOT NULL
 );
-
-
-ALTER TABLE public.pin_codes OWNER TO admin;
-
---
--- Name: role_permissions; Type: TABLE; Schema: public; Owner: admin
---
-
-CREATE TABLE public.role_permissions (
-    role_id uuid NOT NULL,
-    permission character varying(255) NOT NULL
-);
-
-
-ALTER TABLE public.role_permissions OWNER TO admin;
-
---
--- Name: roles; Type: TABLE; Schema: public; Owner: admin
---
-
-CREATE TABLE public.roles (
-    id uuid NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    description character varying(255),
-    is_default boolean NOT NULL,
-    level integer NOT NULL,
-    name character varying(100) NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
-);
-
-
-ALTER TABLE public.roles OWNER TO admin;
-
---
--- Name: tb_order_seq; Type: SEQUENCE; Schema: public; Owner: admin
---
-
-CREATE SEQUENCE public.tb_order_seq
-    START WITH 1
-    INCREMENT BY 50
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER SEQUENCE public.tb_order_seq OWNER TO admin;
-
---
--- Name: users; Type: TABLE; Schema: public; Owner: admin
---
 
 CREATE TABLE public.users (
     id uuid NOT NULL,
@@ -184,293 +35,116 @@ CREATE TABLE public.users (
     updated_at timestamp(6) without time zone NOT NULL,
     username character varying(50),
     zip_code character varying(20),
-    role_id uuid
+    is_deleted boolean NOT NULL,
+    CONSTRAINT users_pkey PRIMARY KEY (id),
+    CONSTRAINT uk_6dotkott2kjsp8vw4d0m25fb7 UNIQUE (email),
+    CONSTRAINT uk_r43af9ap4edm43mmtq01oddj6 UNIQUE (username)
 );
 
+CREATE TABLE public.enterprise (
+    id UUID PRIMARY KEY,
+    name_enterprise VARCHAR(255) NOT NULL,
+    is_deleted boolean NOT NULL,
+    id_user UUID NOT NULL REFERENCES public.users(id)
+);
 
-ALTER TABLE public.users OWNER TO admin;
+CREATE TABLE public.recruiter (
+    id UUID PRIMARY KEY,
+    name_recruiter VARCHAR(255) NOT NULL,
+    is_deleted boolean NOT NULL,
+    id_user UUID NOT NULL REFERENCES public.users(id)
+);
 
---
--- Data for Name: group_audit_logs; Type: TABLE DATA; Schema: public; Owner: admin
---
+CREATE TABLE public.action (
+    id UUID PRIMARY KEY,
+    is_deleted boolean NOT NULL,
+    name VARCHAR(255) NOT NULL
+);
 
-COPY public.group_audit_logs (id, action, ip_address, new_value, old_value, performed_at, group_id, performed_by, target_user_id) FROM stdin;
-\.
+CREATE TABLE public.role (
+    id UUID PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    is_deleted boolean NOT NULL,
+    description TEXT
+);
 
+CREATE TABLE public."group" (
+    id UUID PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    is_deleted boolean NOT NULL,
+    id_enterprise UUID NOT NULL REFERENCES public.enterprise(id)
+);
 
---
--- Data for Name: group_invitations; Type: TABLE DATA; Schema: public; Owner: admin
---
+CREATE TABLE public.permission (
+    id UUID PRIMARY KEY,
+    id_role UUID NOT NULL REFERENCES public.role(id),
+    id_action UUID NOT NULL REFERENCES public.action(id),
+    allowed BOOLEAN NOT NULL DEFAULT FALSE,
+    id_enterprise UUID NOT NULL REFERENCES public.enterprise(id),
+    is_deleted boolean NOT NULL,
+    id_group UUID REFERENCES public."group"(id)
+);
 
-COPY public.group_invitations (id, created_at, email, expires_at, status, token, group_id, invited_by, role_id) FROM stdin;
-\.
+CREATE TABLE public.user_group (
+    user_id UUID NOT NULL REFERENCES public.users(id),
+    group_id UUID NOT NULL REFERENCES public."group"(id),
+    is_deleted boolean NOT NULL,
+    PRIMARY KEY (user_id, group_id)
+);
 
-
---
--- Data for Name: group_members; Type: TABLE DATA; Schema: public; Owner: admin
---
-
-COPY public.group_members (id, invitation_expires_at, is_active, joined_at, assigned_role_id, group_id, invited_by, user_id) FROM stdin;
-\.
-
-
---
--- Data for Name: groups; Type: TABLE DATA; Schema: public; Owner: admin
---
-
-COPY public.groups (id, created_at, description, is_active, name, updated_at, created_by, default_role_id) FROM stdin;
-\.
-
-
---
--- Data for Name: pin_codes; Type: TABLE DATA; Schema: public; Owner: admin
---
-
-
---
--- Data for Name: role_permissions; Type: TABLE DATA; Schema: public; Owner: admin
---
-
-COPY public.role_permissions (role_id, permission) FROM stdin;
-\.
-
-
---
--- Data for Name: roles; Type: TABLE DATA; Schema: public; Owner: admin
---
-
-COPY public.roles (id, created_at, description, is_default, level, name, updated_at) FROM stdin;
-\.
-
-
---
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: admin
---
-
---
--- Name: tb_order_seq; Type: SEQUENCE SET; Schema: public; Owner: admin
---
-
-SELECT pg_catalog.setval('public.tb_order_seq', 1, false);
-
-
---
--- Name: group_audit_logs group_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_audit_logs
-    ADD CONSTRAINT group_audit_logs_pkey PRIMARY KEY (id);
-
-
---
--- Name: group_invitations group_invitations_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_invitations
-    ADD CONSTRAINT group_invitations_pkey PRIMARY KEY (id);
-
-
---
--- Name: group_members group_members_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_members
-    ADD CONSTRAINT group_members_pkey PRIMARY KEY (id);
-
-
---
--- Name: groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.groups
-    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
-
-
---
--- Name: pin_codes pin_codes_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.pin_codes
+ALTER TABLE public.pin_codes
     ADD CONSTRAINT pin_codes_pkey PRIMARY KEY (id);
 
-
---
--- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.roles
-    ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
-
-
---
--- Name: users uk_6dotkott2kjsp8vw4d0m25fb7; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT uk_6dotkott2kjsp8vw4d0m25fb7 UNIQUE (email);
-
-
---
--- Name: groups uk_8mf0is8024pqmwjxgldfe54l7; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.groups
-    ADD CONSTRAINT uk_8mf0is8024pqmwjxgldfe54l7 UNIQUE (name);
-
-
---
--- Name: group_invitations uk_mvxay7s6ih90rl9b5fa66y4de; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_invitations
-    ADD CONSTRAINT uk_mvxay7s6ih90rl9b5fa66y4de UNIQUE (token);
-
-
---
--- Name: roles uk_ofx66keruapi6vyqpv6f2or37; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.roles
-    ADD CONSTRAINT uk_ofx66keruapi6vyqpv6f2or37 UNIQUE (name);
-
-
---
--- Name: users uk_r43af9ap4edm43mmtq01oddj6; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT uk_r43af9ap4edm43mmtq01oddj6 UNIQUE (username);
-
-
---
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-
-
---
--- Name: group_audit_logs fk5hxto0ph6ewi5r2qrxo9xpc0q; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_audit_logs
-    ADD CONSTRAINT fk5hxto0ph6ewi5r2qrxo9xpc0q FOREIGN KEY (performed_by) REFERENCES public.users(id);
-
-
---
--- Name: group_invitations fk8kvc155725cd849jpmbuqay8c; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_invitations
-    ADD CONSTRAINT fk8kvc155725cd849jpmbuqay8c FOREIGN KEY (group_id) REFERENCES public.groups(id);
-
-
---
--- Name: groups fki4yyvbs8kcx7fxlhwe75f2nec; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.groups
-    ADD CONSTRAINT fki4yyvbs8kcx7fxlhwe75f2nec FOREIGN KEY (default_role_id) REFERENCES public.roles(id);
-
-
---
--- Name: groups fkkhpvhy2p2c1un4krvhwnau23b; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.groups
-    ADD CONSTRAINT fkkhpvhy2p2c1un4krvhwnau23b FOREIGN KEY (created_by) REFERENCES public.users(id);
-
-
---
--- Name: group_members fkkv9vlrye4rmhqjq4qohy2n5a6; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_members
-    ADD CONSTRAINT fkkv9vlrye4rmhqjq4qohy2n5a6 FOREIGN KEY (group_id) REFERENCES public.groups(id);
-
-
---
--- Name: group_invitations fkm4p4ritm75ijvunl9ehwpulkx; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_invitations
-    ADD CONSTRAINT fkm4p4ritm75ijvunl9ehwpulkx FOREIGN KEY (invited_by) REFERENCES public.users(id);
-
-
---
--- Name: role_permissions fkn5fotdgk8d1xvo8nav9uv3muc; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.role_permissions
-    ADD CONSTRAINT fkn5fotdgk8d1xvo8nav9uv3muc FOREIGN KEY (role_id) REFERENCES public.roles(id);
-
-
---
--- Name: group_members fkniqyx6vxtu3kdvqxqedillyi6; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_members
-    ADD CONSTRAINT fkniqyx6vxtu3kdvqxqedillyi6 FOREIGN KEY (assigned_role_id) REFERENCES public.roles(id);
-
-
---
--- Name: group_members fknr9qg33qt2ovmv29g4vc3gtdx; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_members
-    ADD CONSTRAINT fknr9qg33qt2ovmv29g4vc3gtdx FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-
---
--- Name: group_audit_logs fko4jj4i6ucbcmlumuj662a96e0; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_audit_logs
-    ADD CONSTRAINT fko4jj4i6ucbcmlumuj662a96e0 FOREIGN KEY (target_user_id) REFERENCES public.users(id);
-
-
---
--- Name: users fkp56c1712k691lhsyewcssf40f; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT fkp56c1712k691lhsyewcssf40f FOREIGN KEY (role_id) REFERENCES public.roles(id);
-
-
---
--- Name: group_invitations fkpmm7nxr11u7mujskh3qc2r02i; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_invitations
-    ADD CONSTRAINT fkpmm7nxr11u7mujskh3qc2r02i FOREIGN KEY (role_id) REFERENCES public.roles(id);
-
-
---
--- Name: group_members fkq0st4sk72vscrbjvs89qc1qpu; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_members
-    ADD CONSTRAINT fkq0st4sk72vscrbjvs89qc1qpu FOREIGN KEY (invited_by) REFERENCES public.users(id);
-
-
---
--- Name: group_audit_logs fkrsog6hog75botrqlychj5meae; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.group_audit_logs
-    ADD CONSTRAINT fkrsog6hog75botrqlychj5meae FOREIGN KEY (group_id) REFERENCES public.groups(id);
-
-
---
--- Name: pin_codes fktnbkdidrkdqow2xobko9mj2k; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.pin_codes
+ALTER TABLE public.pin_codes
     ADD CONSTRAINT fktnbkdidrkdqow2xobko9mj2k FOREIGN KEY (user_id) REFERENCES public.users(id);
 
+ALTER TABLE public.pin_codes OWNER TO admin;
+ALTER TABLE public.users OWNER TO admin;
 
---
--- PostgreSQL database dump complete
---
+INSERT INTO action (id, name, description) VALUES
+('11111111-1111-1111-1111-111111111111', 'Create job', 'Create a new job posting'),
+('22222222-2222-2222-2222-222222222222', 'Edit job', 'Edit an existing job posting'),
+('33333333-3333-3333-3333-333333333333', 'View job', 'View job details'),
+('44444444-4444-4444-4444-444444444444', 'Move job between phases', 'Move a job between different Kanban phases'),
+('55555555-5555-5555-5555-555555555555', 'View applications', 'View candidate applications for a job'),
+('66666666-6666-6666-6666-666666666666', 'Close job', 'Close a job posting'),
+('77777777-7777-7777-7777-777777777777', 'Delete job', 'Delete a job posting'),
+('88888888-8888-8888-8888-888888888888', 'Create/edit Kanban phases', 'Create or edit Kanban board phases'),
+('99999999-9999-9999-9999-999999999999', 'Access People tab', 'Access the People management section'),
+('10101010-1010-1010-1010-101010101010', 'Invite/manage users', 'Invite or manage platform users'),
+('11111111-1111-1111-1111-111111111112', 'Edit company settings', 'Edit organization/company settings'),
+('12121212-1212-1212-1212-121212121212', 'Access full job history', 'View complete history of a job posting'),
+('13131313-1313-1313-1313-131313131313', 'View application statistics', 'View statistics about job applications'),
+('14141414-1414-1414-1414-141414141414', 'Clone job', 'Clone a job to create a similar new one'),
+('15151515-1515-1515-1515-151515151515', 'Reopen job', 'Reopen a closed job by moving it back to "Backlog"'),
+('16161616-1616-1616-1616-161616161616', 'Manage jobs and candidates', 'Manage jobs and candidates but not users'),
+('17171717-1717-1717-1717-171717171717', 'Invite team members', 'Invite team members (analysts, coordinators, external partners)'),
+('18181818-1818-1818-1818-181818181818', 'Assign specific permissions', 'Assign specific permissions for each action within the organization'),
+('19191919-1919-1919-1919-191919191919', 'Manage visibility and editing', 'Manage who can view, edit, publish and move jobs');
 
+INSERT INTO role (id, name, description) VALUES
+('11111111-1111-1111-1111-111111111111', 'Candidate user', 'Standard user who registered and applies for jobs, researches companies'),
+('22222222-2222-2222-2222-222222222222', 'Anonymous user', 'Unregistered user who can view and apply for jobs, research companies'),
+('33333333-3333-3333-3333-333333333333', 'Company', 'Company that created an account on the platform'),
+('44444444-4444-4444-4444-444444444444', 'Manager Recruiter', 'Company person responsible for creating processes and managing people'),
+('55555555-5555-5555-5555-555555555555', 'Collaborator Recruiter', 'Company person responsible for managing recruitment processes'),
+('66666666-6666-6666-6666-666666666666', 'Guest', 'Person with access to view recruitment processes'),
+('77777777-7777-7777-7777-777777777777', 'HR Analyst', 'Responsible for resume screening, interview scheduling and recruitment support'),
+('88888888-8888-8888-8888-888888888888', 'HR Coordinator', 'Supervises HR team and ensures recruitment follows company policies'),
+('99999999-9999-9999-9999-999999999999', 'Department Manager', 'Requests new positions, participates in profile definition and approves candidates'),
+('10101010-1010-1010-1010-101010101010', 'Technical Interviewer', 'Evaluates candidates based on specific technical skills during interviews'),
+('11111111-1111-1111-1111-111111111112', 'Organizational Psychologist', 'Conducts behavioral assessments and psychological tests'),
+('12121212-1212-1212-1212-121212121212', 'Talent Acquisition Analyst', 'Responsible for job advertising campaigns and attraction strategies'),
+('13131313-1313-1313-1313-131313131313', 'External Recruitment Partner', 'Consultant or outsourced company that helps fill specific positions'),
+('14141414-1414-1414-1414-141414141414', 'Company Account Administrator', 'Has full control of company account, can add users, edit permissions and view reports'),
+('15151515-1515-1515-1515-151515151515', 'HR Assistant', 'Assists with administrative HR activities like document organization and candidate contact'),
+('16161616-1616-1616-1616-161616161616', 'Recruitment Assistant', 'Supports resume screening, email sending and interview scheduling'),
+('17171717-1717-1717-1717-171717171717', 'HR Technician', 'Technical professional who executes recruitment, selection and personnel administration routines'),
+('18181818-1818-1818-1818-181818181818', 'HR Intern', 'Supports recruitment activities under supervision, participating in screenings and administrative support'),
+('19191919-1919-1919-1919-191919191919', 'HR Administrative Assistant', 'Focuses on internal controls, registrations and support for selection processes'),
+('20202020-2020-2020-2020-202020202020', 'Candidate Support Operator', 'Answers questions, confirms attendance and supports candidates in the selection process'),
+('21212121-2121-2121-2121-212121212121', 'Interview Monitor', 'Schedules, organizes and monitors in-person or online interviews'),
+('22222222-2222-2222-2222-222222222222', 'Payroll Assistant', 'Supports records and integration of new employees after selection process'),
+('23232323-2323-2323-2323-232323232323', 'Selection Technician', 'Conducts operational interviews and applies practical tests for base functions'),
+('24242424-2424-2424-2424-242424242424', 'Internal Communication Assistant', 'Responsible for internally advertising new jobs and recruitment-related communications');

@@ -59,10 +59,6 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String bio;
 
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    private Role role;
-
     @Column(length = 50)
     private String timeZone;
 
