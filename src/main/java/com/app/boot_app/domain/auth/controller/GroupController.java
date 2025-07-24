@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/auth/groups")
+@RequestMapping("/api/v1/auth/group")
 @RequiredArgsConstructor
 public class GroupController {
 
