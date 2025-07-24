@@ -43,8 +43,8 @@ CREATE TABLE public.tb_pin_code (
     is_used BOOLEAN NOT NULL DEFAULT FALSE,
     id_user UUID NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    CONSTRAINT pin_codes_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_pin_codes_user FOREIGN KEY (id_user) REFERENCES public.tb_users(id)
+    CONSTRAINT pin_code_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_pin_code_user FOREIGN KEY (id_user) REFERENCES public.tb_user(id)
 );
 
 -- Tabela de empresas
@@ -54,7 +54,7 @@ CREATE TABLE public.tb_enterprise (
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     id_user UUID NOT NULL,
     CONSTRAINT enterprise_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_enterprise_user FOREIGN KEY (id_user) REFERENCES public.tb_users(id)
+    CONSTRAINT fk_enterprise_user FOREIGN KEY (id_user) REFERENCES public.tb_user(id)
 );
 
 -- Tabela de recrutadores
@@ -64,7 +64,7 @@ CREATE TABLE public.tb_recruiter (
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     id_user UUID NOT NULL,
     CONSTRAINT recruiter_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_recruiter_user FOREIGN KEY (id_user) REFERENCES public.tb_users(id)
+    CONSTRAINT fk_recruiter_user FOREIGN KEY (id_user) REFERENCES public.tb_user(id)
 );
 
 -- Tabela de ações
@@ -117,15 +117,15 @@ CREATE TABLE public.tb_user_group (
     id_group UUID NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT user_group_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_user_group_user FOREIGN KEY (id_user) REFERENCES public.tb_users(id),
+    CONSTRAINT fk_user_group_user FOREIGN KEY (id_user) REFERENCES public.tb_user(id),
     CONSTRAINT fk_user_group_group FOREIGN KEY (id_group) REFERENCES public.tb_group(id)
 );
 
 -- Índices para melhorar performance
-CREATE INDEX idx_pin_codes_id_user ON public.tb_pin_codes(id_user);
-CREATE INDEX idx_pin_codes_email ON public.tb_pin_codes(email);
-CREATE INDEX idx_users_email ON public.tb_users(email);
-CREATE INDEX idx_users_username ON public.tb_users(username);
+CREATE INDEX idx_pin_code_id_user ON public.tb_pin_code(id_user);
+CREATE INDEX idx_pin_code_email ON public.tb_pin_code(email);
+CREATE INDEX idx_users_email ON public.tb_user(email);
+CREATE INDEX idx_users_username ON public.tb_user(username);
 CREATE INDEX idx_enterprise_id_user ON public.tb_enterprise(id_user);
 CREATE INDEX idx_recruiter_id_user ON public.tb_recruiter(id_user);
 CREATE INDEX idx_id_group_enterprise ON public.tb_group(id_enterprise);
@@ -134,7 +134,7 @@ CREATE INDEX idx_permission_id_action ON public.tb_permission(id_action);
 CREATE INDEX idx_user_id_group_user ON public.tb_user_group(id_user);
 CREATE INDEX idx_user_id_group_group ON public.tb_user_group(id_group);
 
-INSERT INTO action (id, name, description) VALUES
+INSERT INTO tb_action (id, name, description) VALUES
 (uuid_generate_v4(), 'Create job', 'Create a new job posting'),
 (uuid_generate_v4(), 'Edit job', 'Edit an existing job posting'),
 (uuid_generate_v4(), 'View job', 'View job details'),
@@ -155,7 +155,7 @@ INSERT INTO action (id, name, description) VALUES
 (uuid_generate_v4(), 'Assign specific permissions', 'Assign specific permissions for each action within the organization'),
 (uuid_generate_v4(), 'Manage visibility and editing', 'Manage who can view, edit, publish and move jobs');
 
-INSERT INTO role (id, name, description) VALUES
+INSERT INTO tb_role (id, name, description) VALUES
 (uuid_generate_v4(), 'Candidate user', 'Standard user who registered and applies for jobs, researches companies'),
 (uuid_generate_v4(), 'Anonymous user', 'Unregistered user who can view and apply for jobs, research companies'),
 (uuid_generate_v4(), 'Company', 'Company that created an account on the platform'),

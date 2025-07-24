@@ -11,7 +11,7 @@ public class UserHasPermissionRequestDTO {
     @NotNull
     private UUID userId;
     @NotBlank
-    private String actionName;
+    private UUID actionId;
     @NotNull
     private UUID enterpriseId;
 }

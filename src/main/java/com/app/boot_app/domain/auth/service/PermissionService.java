@@ -11,5 +11,5 @@ public interface PermissionService {
 
     void revokePermissionFromGroup(UUID groupId, UUID actionId, UUID enterpriseId);
 
-    boolean userHasPermissionForAction(UUID userId, String actionName, UUID enterpriseId);
+    boolean userHasPermissionForAction(UUID userId, UUID actionId, UUID enterpriseId);
 }

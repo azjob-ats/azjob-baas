@@ -47,7 +47,7 @@ public class PermissionController {
 
     @PostMapping("/user/check")
     public ApiResponse<UserHasPermissionResponseDTO> userHasPermissionForAction(@Valid @RequestBody UserHasPermissionRequestDTO requestDTO) {
-        boolean hasPermission = permissionService.userHasPermissionForAction(requestDTO.getUserId(), requestDTO.getActionName(), requestDTO.getEnterpriseId());
+        boolean hasPermission = permissionService.userHasPermissionForAction(requestDTO.getUserId(), requestDTO.getActionId(), requestDTO.getEnterpriseId());
         return Response.ok("Permission check completed", new UserHasPermissionResponseDTO(hasPermission));
     }
 }

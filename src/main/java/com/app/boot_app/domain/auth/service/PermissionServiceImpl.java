@@ -1,12 +1,20 @@
 package com.app.boot_app.domain.auth.service;
 
-import com.app.boot_app.domain.auth.entity.*;
-import com.app.boot_app.domain.auth.repository.*;
-import com.app.boot_app.shared.exeception.model.NotFoundException;
-import lombok.RequiredArgsConstructor;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import com.app.boot_app.domain.auth.entity.Action;
+import com.app.boot_app.domain.auth.entity.Group;
+import com.app.boot_app.domain.auth.entity.Permission;
+import com.app.boot_app.domain.auth.entity.Role;
+import com.app.boot_app.domain.auth.repository.ActionRepository;
+import com.app.boot_app.domain.auth.repository.GroupRepository;
+import com.app.boot_app.domain.auth.repository.PermissionRepository;
+import com.app.boot_app.domain.auth.repository.RoleRepository;
+import com.app.boot_app.shared.exeception.model.NotFoundException;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +24,6 @@ public class PermissionServiceImpl implements PermissionService {
     private final RoleRepository roleRepository;
     private final ActionRepository actionRepository;
     private final GroupRepository groupRepository;
-    private final UserRepository userRepository;
 
     @Override
     public void grantPermissionToRole(UUID roleId, UUID actionId, UUID enterpriseId) {
@@ -25,26 +32,20 @@ public class PermissionServiceImpl implements PermissionService {
         Action action = actionRepository.findById(actionId)
                 .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Action not found"));
 
-        if (!role.getEnterprise().getId().equals(enterpriseId)) {
-            throw new NotFoundException("NOT_FOUND", "Role not found in this enterprise");
-        }
-
         Permission permission = new Permission();
         permission.setRole(role);
         permission.setAction(action);
+        permission.setAllowed(true);
         permissionRepository.save(permission);
     }
 
     @Override
     public void revokePermissionFromRole(UUID roleId, UUID actionId, UUID enterpriseId) {
-        Permission permission = permissionRepository.findByRoleIdAndActionId(roleId, actionId)
+        Permission permission = permissionRepository
+                .findByRoleIdAndActionIdAndIdEnterprise(roleId, actionId, enterpriseId)
                 .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Permission not found"));
-
-        if (!permission.getRole().getEnterprise().getId().equals(enterpriseId)) {
-            throw new NotFoundException("NOT_FOUND", "Role not found in this enterprise");
-        }
-
-        permissionRepository.delete(permission);
+        permission.setAllowed(false);
+        permissionRepository.save(permission);
     }
 
     @Override
@@ -66,25 +67,20 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     public void revokePermissionFromGroup(UUID groupId, UUID actionId, UUID enterpriseId) {
-        Permission permission = permissionRepository.findByGroupIdAndActionId(groupId, actionId)
+        Permission permission = permissionRepository
+                .findByGroupIdAndActionIdAndIdEnterprise(groupId, actionId, enterpriseId)
                 .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Permission not found"));
 
         if (!permission.getGroup().getEnterprise().getId().equals(enterpriseId)) {
             throw new NotFoundException("NOT_FOUND", "Permission not found in this enterprise");
         }
 
-        permissionRepository.delete(permission);
+        permission.setDeleted(true);
+        permissionRepository.save(permission);
     }
 
     @Override
-    public boolean userHasPermissionForAction(UUID userId, String actionName, UUID enterpriseId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "User not found"));
-
-        if (!user.getEnterprise().getId().equals(enterpriseId)) {
-            return false;
-        }
-
-        return permissionRepository.existsByUserIdAndActionName(userId, actionName);
+    public boolean userHasPermissionForAction(UUID userId, UUID actionId, UUID enterpriseId) {
+        return permissionRepository.userHasPermissionForAction(userId, actionId, enterpriseId);
     }
 }

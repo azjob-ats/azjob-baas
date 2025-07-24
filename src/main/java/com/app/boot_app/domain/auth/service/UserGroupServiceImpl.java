@@ -29,10 +29,6 @@ public class UserGroupServiceImpl implements UserGroupService {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Group not found"));
 
-        if (!user.getEnterprise().getId().equals(enterpriseId) || !group.getEnterprise().getId().equals(enterpriseId)) {
-            throw new NotFoundException("NOT_FOUND", "User or group not found in this enterprise");
-        }
-
         UserGroup userGroup = new UserGroup();
         userGroup.setUser(user);
         userGroup.setGroup(group);
@@ -43,12 +39,9 @@ public class UserGroupServiceImpl implements UserGroupService {
     public void removeUserFromGroup(UUID userId, UUID groupId, UUID enterpriseId) {
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
                 .orElseThrow(() -> new NotFoundException("NOT_FOUND", "User not found in this group"));
-
-        if (!userGroup.getUser().getEnterprise().getId().equals(enterpriseId)) {
-            throw new NotFoundException("NOT_FOUND", "User or group not found in this enterprise");
-        }
-
-        userGroupRepository.delete(userGroup);
+             
+        userGroup.setDeleted(true);
+        userGroupRepository.save(userGroup);
     }
 
     @Override
