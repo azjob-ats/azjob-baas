@@ -302,51 +302,51 @@ Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RE
 ### user_group
 | Método | Endpoint             | Descrição                                 | Autenticado | Body Request (exemplo)          |
 | ------ | -------------------- | ----------------------------------------- | ----------- | ------------------------------- |
-| GET    | `/api/v1/user-group` | Lista os grupos que o usuário pertence    | sim         | —                               |
-| POST   | `/api/v1/user-group` | Adiciona o usuário autenticado a um grupo | sim         | `{ group_id: "uuid-do-grupo" }` |
-| DELETE | `/api/v1/user-group` | Remove o usuário autenticado de um grupo  | sim         | `{ group_id: "uuid-do-grupo" }` |
+| GET    | `/api/v1/auth/user-group` | Lista os grupos que o usuário pertence    | sim         | —                               |
+| POST   | `/api/v1/auth/user-group` | Adiciona o usuário autenticado a um grupo | sim         | `{ group_id: "uuid-do-grupo" }` |
+| DELETE | `/api/v1/auth/user-group` | Remove o usuário autenticado de um grupo  | sim         | `{ group_id: "uuid-do-grupo" }` |
 
 ### permission
 | Método | Endpoint                  | Descrição                                              | Autenticado | Body Request (exemplo)                                  |
 | ------ | ------------------------- | ------------------------------------------------------ | ----------- | ------------------------------------------------------- |
-| GET    | `/api/v1/permissions`     | Lista permissões do grupo do usuário autenticado       | sim         | —                                                       |
-| POST   | `/api/v1/permissions`     | Cria nova permissão dentro do grupo atual (admin only) | sim         | `{ id_role: "...", id_action: "...", permitido: true }` |
-| PUT    | `/api/v1/permissions/:id` | Atualiza uma permissão específica                      | sim         | `{ permitido: false }`                                  |
-| DELETE | `/api/v1/permissions/:id` | Remove uma permissão específica                        | sim         | —                                                       |
+| GET    | `/api/v1/auth/permissions`     | Lista permissões do grupo do usuário autenticado       | sim         | —                                                       |
+| POST   | `/api/v1/auth/permissions`     | Cria nova permissão dentro do grupo atual (admin only) | sim         | `{ id_role: "...", id_action: "...", permitido: true }` |
+| PUT    | `/api/v1/auth/permissions/:id` | Atualiza uma permissão específica                      | sim         | `{ permitido: false }`                                  |
+| DELETE | `/api/v1/auth/permissions/:id` | Remove uma permissão específica                        | sim         | —                                                       |
 
 ### group
 | Método | Endpoint             | Descrição                                    | Autenticado | Body Request (exemplo)                       |
 | ------ | -------------------- | -------------------------------------------- | ----------- | -------------------------------------------- |
-| GET    | `/api/v1/groups`     | Lista grupos da empresa vinculada ao usuário | sim         | —                                            |
-| POST   | `/api/v1/groups`     | Cria novo grupo para a empresa do usuário    | sim         | `{ name: "RH", description: "Grupo de RH" }` |
-| PUT    | `/api/v1/groups/:id` | Atualiza informações do grupo                | sim         | `{ name: "RH Básico" }`                      |
-| DELETE | `/api/v1/groups/:id` | Remove um grupo da empresa                   | sim         | —                                            |
+| GET    | `/api/v1/auth/groups`     | Lista grupos da empresa vinculada ao usuário | sim         | —                                            |
+| POST   | `/api/v1/auth/groups`     | Cria novo grupo para a empresa do usuário    | sim         | `{ name: "RH", description: "Grupo de RH" }` |
+| PUT    | `/api/v1/auth/groups/:id` | Atualiza informações do grupo                | sim         | `{ name: "RH Básico" }`                      |
+| DELETE | `/api/v1/auth/groups/:id` | Remove um grupo da empresa                   | sim         | —                                            |
 
 ### role
 | Método | Endpoint            | Descrição                          | Autenticado | Body Request (exemplo) |
 | ------ | ------------------- | ---------------------------------- | ----------- | ---------------------- |
-| GET    | `/api/v1/roles`     | Lista todas as funções disponíveis | sim         | —                      |
-| GET    | `/api/v1/roles/:id` | Retorna detalhes de uma função     | sim         | —                      |
+| GET    | `/api/v1/auth/roles`     | Lista todas as funções disponíveis | sim         | —                      |
+| GET    | `/api/v1/auth/roles/:id` | Retorna detalhes de uma função     | sim         | —                      |
 
 ### action
 | Método | Endpoint              | Descrição                       | Autenticado | Body Request (exemplo) |
 | ------ | --------------------- | ------------------------------- | ----------- | ---------------------- |
-| GET    | `/api/v1/actions`     | Lista todas as ações possíveis  | sim         | —                      |
-| GET    | `/api/v1/actions/:id` | Detalhes de uma ação específica | sim         | —                      |
+| GET    | `/api/v1/auth/actions`     | Lista todas as ações possíveis  | sim         | —                      |
+| GET    | `/api/v1/auth/actions/:id` | Detalhes de uma ação específica | sim         | —                      |
 
 ### recruiter
 | Método | Endpoint            | Descrição                                   | Autenticado | Body Request (exemplo)            |
 | ------ | ------------------- | ------------------------------------------- | ----------- | --------------------------------- |
-| GET    | `/api/v1/recruiter` | Visualiza dados do recrutador autenticado   | sim         | —                                 |
-| POST   | `/api/v1/recruiter` | Cria recrutador (caso não exista)           | sim         | `{ name_recruiter: "Ana" }`       |
-| PUT    | `/api/v1/recruiter` | Atualiza os dados do recrutador autenticado | sim         | `{ name_recruiter: "Ana Maria" }` |
+| GET    | `/api/v1/auth/recruiter` | Visualiza dados do recrutador autenticado   | sim         | —                                 |
+| POST   | `/api/v1/auth/recruiter` | Cria recrutador (caso não exista)           | sim         | `{ name_recruiter: "Ana" }`       |
+| PUT    | `/api/v1/auth/recruiter` | Atualiza os dados do recrutador autenticado | sim         | `{ name_recruiter: "Ana Maria" }` |
 
 ### enterprise
 | Método | Endpoint             | Descrição                             | Autenticado | Body Request (exemplo)                     |
 | ------ | -------------------- | ------------------------------------- | ----------- | ------------------------------------------ |
-| GET    | `/api/v1/enterprise` | Retorna os dados da empresa vinculada | sim         | —                                          |
-| POST   | `/api/v1/enterprise` | Cria empresa vinculada ao usuário     | sim         | `{ name_enterprise: "Nubank" }`            |
-| PUT    | `/api/v1/enterprise` | Atualiza dados da empresa             | sim         | `{ name_enterprise: "Nubank Tecnologia" }` |
+| GET    | `/api/v1/auth/enterprise` | Retorna os dados da empresa vinculada | sim         | —                                          |
+| POST   | `/api/v1/auth/enterprise` | Cria empresa vinculada ao usuário     | sim         | `{ name_enterprise: "Nubank" }`            |
+| PUT    | `/api/v1/auth/enterprise` | Atualiza dados da empresa             | sim         | `{ name_enterprise: "Nubank Tecnologia" }` |
 
 
 ### Observações gerais:

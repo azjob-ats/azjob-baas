@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 import lombok.Data;
 
 @Data
@@ -70,4 +71,10 @@ public class UserResponseDTO {
 
     @Schema(description = "Indicates if the user is blocked")
     private Boolean isBlocked;
+
+    @Schema(description = "")
+    private String idProvider;
+
+    @Schema(description = "")
+    private UUID id;
 }

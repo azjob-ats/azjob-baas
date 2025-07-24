@@ -7,6 +7,7 @@ import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 import com.app.boot_app.domain.auth.dto.VerifyAccountRequestDTO;
 
 public interface AuthService {
+    UserResponseDTO getUserByEmail(String email);
     Boolean signUp(SignUpRequestDTO signUpRequestDTO);
     AuthResponseDTO signIn(SignInRequestDTO signInRequestDTO);
     Boolean verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO);

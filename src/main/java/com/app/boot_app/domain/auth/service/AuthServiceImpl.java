@@ -90,8 +90,6 @@ public class AuthServiceImpl implements AuthService {
                                                         LocaleContextHolder.getLocale()));
                 }
 
-                Map<String, Object> claims = new HashMap<>();
-                claims.put("email", signInRequestDTO.getEmail());
                 FirebaseSignIn res = authAdapter.signInWithEmailAndPassword(
                                 signInRequestDTO.getEmail(),
                                 signInRequestDTO.getPassword());
@@ -224,5 +222,13 @@ public class AuthServiceImpl implements AuthService {
                                                                 LocaleContextHolder.getLocale())));
                 return userMapper.toResponse(user);
 
+        }
+
+        public UserResponseDTO getUserByEmail(String email) {
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new NotFoundException("user-not-found",
+                                                messageSource.getMessage("auth.user.not.found", null,
+                                                                LocaleContextHolder.getLocale())));
+                return userMapper.toResponse(user);
         }
 }

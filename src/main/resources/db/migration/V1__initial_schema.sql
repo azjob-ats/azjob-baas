@@ -1,105 +1,138 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TABLE public.pin_codes (
-    id uuid NOT NULL,
-    code character varying(6) NOT NULL,
-    created_at timestamp(6) without time zone NOT NULL,
-    email character varying(255) NOT NULL,
-    expires_at timestamp(6) without time zone NOT NULL,
-    is_used boolean NOT NULL,
-    user_id uuid NOT NULL,
-    is_deleted boolean NOT NULL
-);
-
+-- Tabela de usuários com ID como UUID
 CREATE TABLE public.users (
-    id uuid NOT NULL,
-    address character varying(255),
-    avatar character varying(255),
-    bio text,
-    birth_date date,
-    city character varying(100),
-    country character varying(100),
-    created_at timestamp(6) without time zone NOT NULL,
-    deleted_at timestamp(6) without time zone,
-    email character varying(255) NOT NULL,
-    first_name character varying(100) NOT NULL,
-    gender character varying(20),
-    is_active boolean NOT NULL,
-    is_blocked boolean NOT NULL,
-    is_verified boolean NOT NULL,
-    last_name character varying(100),
-    password character varying(255) NOT NULL,
-    phone character varying(20),
-    state character varying(100),
-    time_zone character varying(50),
-    updated_at timestamp(6) without time zone NOT NULL,
-    username character varying(50),
-    zip_code character varying(20),
-    is_deleted boolean NOT NULL,
+    id UUID NOT NULL DEFAULT uuid_generate_v4(),
+    address VARCHAR(255),
+    avatar VARCHAR(255),
+    bio TEXT,
+    birth_date DATE,
+    city VARCHAR(100),
+    country VARCHAR(100),
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITHOUT TIME ZONE,
+    email VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    gender VARCHAR(20),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_blocked BOOLEAN NOT NULL DEFAULT FALSE,
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    last_name VARCHAR(100),
+    password VARCHAR(255) NOT NULL,
+    phone VARCHAR(20),
+    state VARCHAR(100),
+    time_zone VARCHAR(50),
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    username VARCHAR(50),
+    zip_code VARCHAR(20),
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    provider VARCHAR(50) NOT NULL,
+    id_provider VARCHAR(50) NOT NULL,
     CONSTRAINT users_pkey PRIMARY KEY (id),
-    CONSTRAINT uk_6dotkott2kjsp8vw4d0m25fb7 UNIQUE (email),
-    CONSTRAINT uk_r43af9ap4edm43mmtq01oddj6 UNIQUE (username)
+    CONSTRAINT uk_users_email UNIQUE (email),
+    CONSTRAINT uk_users_username UNIQUE (username)
 );
 
+-- Tabela de PIN codes
+CREATE TABLE public.pin_codes (
+    id UUID NOT NULL DEFAULT uuid_generate_v4(),
+    code VARCHAR(6) NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    email VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    is_used BOOLEAN NOT NULL DEFAULT FALSE,
+    user_id UUID NOT NULL,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT pin_codes_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_pin_codes_user FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+
+-- Tabela de empresas
 CREATE TABLE public.enterprise (
-    id UUID PRIMARY KEY,
+    id UUID NOT NULL DEFAULT uuid_generate_v4(),
     name_enterprise VARCHAR(255) NOT NULL,
-    is_deleted boolean NOT NULL,
-    id_user UUID NOT NULL REFERENCES public.users(id)
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    id_user UUID NOT NULL,
+    CONSTRAINT enterprise_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_enterprise_user FOREIGN KEY (id_user) REFERENCES public.users(id)
 );
 
+-- Tabela de recrutadores
 CREATE TABLE public.recruiter (
-    id UUID PRIMARY KEY,
+    id UUID NOT NULL DEFAULT uuid_generate_v4(),
     name_recruiter VARCHAR(255) NOT NULL,
-    is_deleted boolean NOT NULL,
-    id_user UUID NOT NULL REFERENCES public.users(id)
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    id_user UUID NOT NULL,
+    CONSTRAINT recruiter_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_recruiter_user FOREIGN KEY (id_user) REFERENCES public.users(id)
 );
 
+-- Tabela de ações
 CREATE TABLE public.action (
-    id UUID PRIMARY KEY,
+    id UUID NOT NULL DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
-    description TEXT
+    description TEXT,
+    CONSTRAINT action_pkey PRIMARY KEY (id)
 );
 
+-- Tabela de roles
 CREATE TABLE public.role (
-    id UUID PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT
-);
-
-CREATE TABLE public."group" (
-    id UUID PRIMARY KEY,
+    id UUID NOT NULL DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    is_deleted boolean NOT NULL,
-    id_enterprise UUID NOT NULL REFERENCES public.enterprise(id)
+    CONSTRAINT role_pkey PRIMARY KEY (id)
 );
 
+-- Tabela de grupos
+CREATE TABLE public."group" (
+    id UUID NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    id_enterprise UUID NOT NULL,
+    CONSTRAINT group_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_group_enterprise FOREIGN KEY (id_enterprise) REFERENCES public.enterprise(id)
+);
+
+-- Tabela de permissões
 CREATE TABLE public.permission (
-    id UUID PRIMARY KEY,
-    id_role UUID NOT NULL REFERENCES public.role(id),
-    id_action UUID NOT NULL REFERENCES public.action(id),
+    id UUID NOT NULL DEFAULT uuid_generate_v4(),
+    id_role UUID NOT NULL,
+    id_action UUID NOT NULL,
     allowed BOOLEAN NOT NULL DEFAULT FALSE,
-    id_enterprise UUID NOT NULL REFERENCES public.enterprise(id),
-    is_deleted boolean NOT NULL,
-    id_group UUID REFERENCES public."group"(id)
+    id_enterprise UUID NOT NULL,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    id_group UUID,
+    CONSTRAINT permission_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_permission_role FOREIGN KEY (id_role) REFERENCES public.role(id),
+    CONSTRAINT fk_permission_action FOREIGN KEY (id_action) REFERENCES public.action(id),
+    CONSTRAINT fk_permission_enterprise FOREIGN KEY (id_enterprise) REFERENCES public.enterprise(id),
+    CONSTRAINT fk_permission_group FOREIGN KEY (id_group) REFERENCES public."group"(id)
 );
 
+-- Tabela de user_group
 CREATE TABLE public.user_group (
-    id UUID PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES public.users(id),
-    group_id UUID NOT NULL REFERENCES public."group"(id),
-    is_deleted boolean NOT NULL
+    id UUID NOT NULL DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    group_id UUID NOT NULL,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT user_group_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_user_group_user FOREIGN KEY (user_id) REFERENCES public.users(id),
+    CONSTRAINT fk_user_group_group FOREIGN KEY (group_id) REFERENCES public."group"(id)
 );
 
-ALTER TABLE public.pin_codes
-    ADD CONSTRAINT pin_codes_pkey PRIMARY KEY (id);
-
-ALTER TABLE public.pin_codes
-    ADD CONSTRAINT fktnbkdidrkdqow2xobko9mj2k FOREIGN KEY (user_id) REFERENCES public.users(id);
-
-ALTER TABLE public.pin_codes OWNER TO admin;
-ALTER TABLE public.users OWNER TO admin;
+-- Índices para melhorar performance
+CREATE INDEX idx_pin_codes_user_id ON public.pin_codes(user_id);
+CREATE INDEX idx_pin_codes_email ON public.pin_codes(email);
+CREATE INDEX idx_users_email ON public.users(email);
+CREATE INDEX idx_users_username ON public.users(username);
+CREATE INDEX idx_enterprise_id_user ON public.enterprise(id_user);
+CREATE INDEX idx_recruiter_id_user ON public.recruiter(id_user);
+CREATE INDEX idx_group_id_enterprise ON public."group"(id_enterprise);
+CREATE INDEX idx_permission_id_role ON public.permission(id_role);
+CREATE INDEX idx_permission_id_action ON public.permission(id_action);
+CREATE INDEX idx_user_group_user_id ON public.user_group(user_id);
+CREATE INDEX idx_user_group_group_id ON public.user_group(group_id);
 
 INSERT INTO action (id, name, description) VALUES
 ('11111111-1111-1111-1111-111111111111', 'Create job', 'Create a new job posting'),

@@ -8,15 +8,15 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.app.boot_app.core.security.FirebaseTokenFilter;
+import com.app.boot_app.core.security.FirebaseRequest;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final FirebaseTokenFilter firebaseTokenFilter;
+    private final FirebaseRequest firebaseTokenFilter;
 
-    public SecurityConfig(FirebaseTokenFilter firebaseTokenFilter) {
+    public SecurityConfig(FirebaseRequest firebaseTokenFilter) {
         this.firebaseTokenFilter = firebaseTokenFilter;
     }
 
@@ -26,7 +26,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**",
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/api/v1/groups/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

@@ -26,18 +26,15 @@ import com.app.boot_app.shared.response.Response;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
     private final MessageSource messageSource;
-
-    public AuthController(AuthService authService, MessageSource messageSource) {
-        this.authService = authService;
-        this.messageSource = messageSource;
-    }
 
     @GetMapping("/user")
     public ApiResponse<UserResponseDTO> user(HttpServletRequest request) {

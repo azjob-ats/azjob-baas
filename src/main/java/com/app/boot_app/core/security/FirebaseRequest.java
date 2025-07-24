@@ -15,12 +15,26 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class FirebaseTokenFilter extends OncePerRequestFilter {
+public class FirebaseRequest extends OncePerRequestFilter {
 
     private final FirebaseAuth firebaseAuth;
 
-    public FirebaseTokenFilter(FirebaseAuth firebaseAuth) {
+    public FirebaseRequest(FirebaseAuth firebaseAuth) {
         this.firebaseAuth = firebaseAuth;
+    }
+
+    public FirebaseToken getFromRequest(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+        String idToken = authorizationHeader.substring(7);
+        return validateToken(idToken);
+    }
+
+    public FirebaseToken validateToken(String idToken){
+        try {
+            return  firebaseAuth.verifyIdToken(idToken);
+        } catch (FirebaseAuthException e) {
+            throw new RuntimeException("Token inválido ou expirado");
+        }
     }
 
     @Override

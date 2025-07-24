@@ -36,8 +36,6 @@ public class JwtServiceImpl implements Jwt {
             Algorithm algorithm = Algorithm.HMAC256(jwtSecret);
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT jwt = verifier.verify(token);
-            System.out.println(extractEmail(token));
-            System.out.println(extractEmail(jwt.getSubject()));
             return jwt.getSubject();
         } catch (JWTVerificationException e) {
             throw new RuntimeException("Token inválido ou expirado");

@@ -112,6 +112,17 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
         }
     }
 
+    public void setCustomUserClaims(String uid) {
+        try {
+            FirebaseAuth.getInstance().setCustomUserClaims("mcGxqujaZJQLlQTUVQyhqyrkcz12", Map.of("group_id", "123", "is_admin", true));
+
+        } catch (FirebaseAuthException e) {
+            throw new InternalServerErrorException("firebase-user-creation-error",
+                    messageSource.getMessage("auth.firebase.user.creation.error", new Object[] { e.getMessage() },
+                            LocaleContextHolder.getLocale()));
+        }
+    }
+
     @Override
     public FirebaseSignIn signInWithEmailAndPassword(String email, String password) {
         RestTemplate restTemplate = new RestTemplate();
@@ -127,6 +138,7 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
+       
         try {
             ResponseEntity<FirebaseSignIn> response = restTemplate.exchange(
                     Constant.FIREBASE_URL + firebaseApiKey,
@@ -162,9 +174,9 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
         return response.getBody();
     }
 
-    public void revokeRefreshTokens(UUID uid) {
+    public void revokeRefreshTokens(String uid) {
         try {
-            FirebaseAuth.getInstance().revokeRefreshTokens(uid.toString());
+            FirebaseAuth.getInstance().revokeRefreshTokens(uid);
         } catch (FirebaseAuthException e) {
             throw new ConflictException("auth/revoke-refresh-token-invalid",
                     messageSource.getMessage("auth.revoke-refresh-token-invalid", null,

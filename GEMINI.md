@@ -172,18 +172,84 @@ src/main/java/com/app/boot_app/
 ### 9.3 Controllers
 
 ```java
+    import com.app.boot_app.shared.response.ApiResponse;
+    import com.app.boot_app.shared.response.Response;
+    import com.app.boot_app.core.security.FirebaseRequest;
+    import org.springframework.context.MessageSource;
+    import com.app.boot_app.domain.auth.service.AuthService;
+    import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 
-    @PostMapping("/sign-up-with-email-and-password")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<AuthResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO signUpRequestDTO) {
-        AuthResponseDTO result = authService.signUp(signUpRequestDTO);
-        String message = messageSource.getMessage("auth.user.created", null, LocaleContextHolder.getLocale());
-        return Response.ok(message, result);
+	@RestController
+    @RequestMapping("/api/v1/{domain}")
+    @RequiredArgsConstructor
+    public class XxxController {
+
+        private final XxxService xxxService;
+        private final AuthService authService;
+
+        @GetMapping("/{rota}")
+        public ApiResponse<XxxResponseDTO> xxx(HttpServletRequest request) {
+            String email = firebaseRequest.getFromRequest(request).getEmail();
+
+            UserResponseDTO user =  authService.getUserByEmail(email);
+
+             List<XxxResponseDTO> result = xxxService.xxxByUserId(user.getId());
+
+            String message = messageSource.getMessage(
+                "{domain.method.message}", 
+                null,
+                LocaleContextHolder.getLocale()
+            );
+
+            return Response.ok(
+                message, 
+                result
+            );
+        }
     }
 
 ```
 
-### 9.4 Padrão de conversão do retorno
+```java
+    import com.app.boot_app.shared.response.ApiResponse;
+    import com.app.boot_app.shared.response.Response;
+    import com.app.boot_app.core.security.FirebaseRequest;
+    import org.springframework.context.MessageSource;
+    import com.app.boot_app.domain.auth.service.AuthService;
+    import com.app.boot_app.domain.auth.dto.UserResponseDTO;
+
+    @RestController
+    @RequestMapping("/api/v1/auth/groups")
+    @RequiredArgsConstructor
+    public class GroupController {
+
+        private final GroupService groupService;
+        private final AuthService authService;
+        private final MessageSource messageSource;
+        private final FirebaseRequest firebaseRequest;
+
+        @GetMapping
+        public ApiResponse<List<GroupResponseDTO>> findAll(HttpServletRequest request) {
+            String email = firebaseRequest.getFromRequest(request).getEmail();
+            UserResponseDTO user =  authService.getUserByEmail(email);
+            List<GroupResponseDTO> result = groupService.findGroupsByUserId(user.getId());
+        }
+    }
+
+```
+
+### 9.4 Service
+```java
+@Service
+@RequiredArgsConstructor
+public class XxxServiceImpl implements XxxService {
+
+    private final XxxService xxxService;
+}
+
+```
+
+### 9.5 Padrão de conversão do retorno
 ```java
 
     public class ApiResponse<T> {
@@ -202,7 +268,7 @@ src/main/java/com/app/boot_app/
 
 ```
 
-### 9.5 Padrão de retorno Sucesso e Erro
+### 9.6 Padrão de retorno Sucesso e Erro
 ```json
     {
         "success": false,
@@ -215,7 +281,7 @@ src/main/java/com/app/boot_app/
     }
 ```
 
-### 9.6 Padrão de retorno Sucesso e Erro
+### 9.7 Padrão de retorno Sucesso e Erro
 ```json
     {
         "success": true,
@@ -226,7 +292,7 @@ src/main/java/com/app/boot_app/
     }
 ```
 
-## Prompt Genérico para criar especificação de Entidades
+## 10 Prompt Genérico para criar especificação de Entidades
 
 ### Especificação da Entidade `{NomeDaEntidade}`
 
@@ -257,7 +323,7 @@ src/main/java/com/app/boot_app/
   - `{outros relacionamentos, se houver}`
 
 
-## Prompt para Especificação de Endpoints
+## 11 Prompt para Especificação de Endpoints
 
 ### {Nome da Funcionalidade}
 
