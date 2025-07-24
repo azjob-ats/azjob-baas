@@ -1,0 +1,90 @@
+package com.app.boot_app.domain.auth.service;
+
+import com.app.boot_app.domain.auth.entity.*;
+import com.app.boot_app.domain.auth.repository.*;
+import com.app.boot_app.shared.exeception.model.NotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class PermissionServiceImpl implements PermissionService {
+
+    private final PermissionRepository permissionRepository;
+    private final RoleRepository roleRepository;
+    private final ActionRepository actionRepository;
+    private final GroupRepository groupRepository;
+    private final UserRepository userRepository;
+
+    @Override
+    public void grantPermissionToRole(UUID roleId, UUID actionId, UUID enterpriseId) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Role not found"));
+        Action action = actionRepository.findById(actionId)
+                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Action not found"));
+
+        if (!role.getEnterprise().getId().equals(enterpriseId)) {
+            throw new NotFoundException("NOT_FOUND", "Role not found in this enterprise");
+        }
+
+        Permission permission = new Permission();
+        permission.setRole(role);
+        permission.setAction(action);
+        permissionRepository.save(permission);
+    }
+
+    @Override
+    public void revokePermissionFromRole(UUID roleId, UUID actionId, UUID enterpriseId) {
+        Permission permission = permissionRepository.findByRoleIdAndActionId(roleId, actionId)
+                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Permission not found"));
+
+        if (!permission.getRole().getEnterprise().getId().equals(enterpriseId)) {
+            throw new NotFoundException("NOT_FOUND", "Role not found in this enterprise");
+        }
+
+        permissionRepository.delete(permission);
+    }
+
+    @Override
+    public void grantPermissionToGroup(UUID groupId, UUID actionId, UUID enterpriseId) {
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Group not found"));
+        Action action = actionRepository.findById(actionId)
+                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Action not found"));
+
+        if (!group.getEnterprise().getId().equals(enterpriseId)) {
+            throw new NotFoundException("NOT_FOUND", "Group not found in this enterprise");
+        }
+
+        Permission permission = new Permission();
+        permission.setGroup(group);
+        permission.setAction(action);
+        permissionRepository.save(permission);
+    }
+
+    @Override
+    public void revokePermissionFromGroup(UUID groupId, UUID actionId, UUID enterpriseId) {
+        Permission permission = permissionRepository.findByGroupIdAndActionId(groupId, actionId)
+                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Permission not found"));
+
+        if (!permission.getGroup().getEnterprise().getId().equals(enterpriseId)) {
+            throw new NotFoundException("NOT_FOUND", "Permission not found in this enterprise");
+        }
+
+        permissionRepository.delete(permission);
+    }
+
+    @Override
+    public boolean userHasPermissionForAction(UUID userId, String actionName, UUID enterpriseId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "User not found"));
+
+        if (!user.getEnterprise().getId().equals(enterpriseId)) {
+            return false;
+        }
+
+        return permissionRepository.existsByUserIdAndActionName(userId, actionName);
+    }
+}

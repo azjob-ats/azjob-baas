@@ -23,7 +23,10 @@ public class UserGroup {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column
+    private boolean isDeleted;
+
     @ManyToOne
-    @JoinColumn(name = "group_id", nullable = false)
+    @JoinColumn(name = "id_group", nullable = false)
     private Group group;
 }

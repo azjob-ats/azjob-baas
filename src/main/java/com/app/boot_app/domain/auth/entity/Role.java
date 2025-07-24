@@ -24,4 +24,8 @@ public class Role {
 
     @Column
     private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "id_enterprise", nullable = false)
+    private Enterprise enterprise;
 }

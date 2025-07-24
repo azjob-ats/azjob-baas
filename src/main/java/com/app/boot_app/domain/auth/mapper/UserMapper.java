@@ -3,6 +3,9 @@ package com.app.boot_app.domain.auth.mapper;
 import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 import com.app.boot_app.domain.auth.entity.User;
 import org.mapstruct.Mapper;
+
+import java.util.List;
+
 //import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
@@ -14,4 +17,6 @@ public interface UserMapper {
         isso quando role é uma entidade
     */
     UserResponseDTO toResponse(User user);
+
+    List<UserResponseDTO> usersToUserResponseDTOs(List<User> users);
 }

@@ -16,7 +16,7 @@ public class PinCode {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "id_user", nullable = false)
     private User user;
 
     @Column(nullable = false, length = 6)
@@ -25,11 +25,14 @@ public class PinCode {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime expiresAt;
 
-    @Column(nullable = false)
+    @Column(name = "is_used",nullable = false)
     private Boolean isUsed = false;
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

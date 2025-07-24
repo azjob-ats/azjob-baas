@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Tabela de usuários com ID como UUID
-CREATE TABLE public.users (
+CREATE TABLE public.users ( 
     id UUID NOT NULL DEFAULT uuid_generate_v4(),
     address VARCHAR(255),
     avatar VARCHAR(255),
@@ -41,10 +41,10 @@ CREATE TABLE public.pin_codes (
     email VARCHAR(255) NOT NULL,
     expires_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     is_used BOOLEAN NOT NULL DEFAULT FALSE,
-    user_id UUID NOT NULL,
+    id_user UUID NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT pin_codes_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_pin_codes_user FOREIGN KEY (user_id) REFERENCES public.users(id)
+    CONSTRAINT fk_pin_codes_user FOREIGN KEY (id_user) REFERENCES public.users(id)
 );
 
 -- Tabela de empresas
@@ -113,26 +113,26 @@ CREATE TABLE public.permission (
 -- Tabela de user_group
 CREATE TABLE public.user_group (
     id UUID NOT NULL DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL,
-    group_id UUID NOT NULL,
+    id_user UUID NOT NULL,
+    id_group UUID NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT user_group_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_user_group_user FOREIGN KEY (user_id) REFERENCES public.users(id),
-    CONSTRAINT fk_user_group_group FOREIGN KEY (group_id) REFERENCES public."group"(id)
+    CONSTRAINT fk_user_group_user FOREIGN KEY (id_user) REFERENCES public.users(id),
+    CONSTRAINT fk_user_group_group FOREIGN KEY (id_group) REFERENCES public."group"(id)
 );
 
 -- Índices para melhorar performance
-CREATE INDEX idx_pin_codes_user_id ON public.pin_codes(user_id);
+CREATE INDEX idx_pin_codes_id_user ON public.pin_codes(id_user);
 CREATE INDEX idx_pin_codes_email ON public.pin_codes(email);
 CREATE INDEX idx_users_email ON public.users(email);
 CREATE INDEX idx_users_username ON public.users(username);
 CREATE INDEX idx_enterprise_id_user ON public.enterprise(id_user);
 CREATE INDEX idx_recruiter_id_user ON public.recruiter(id_user);
-CREATE INDEX idx_group_id_enterprise ON public."group"(id_enterprise);
+CREATE INDEX idx_id_group_enterprise ON public."group"(id_enterprise);
 CREATE INDEX idx_permission_id_role ON public.permission(id_role);
 CREATE INDEX idx_permission_id_action ON public.permission(id_action);
-CREATE INDEX idx_user_group_user_id ON public.user_group(user_id);
-CREATE INDEX idx_user_group_group_id ON public.user_group(group_id);
+CREATE INDEX idx_user_id_group_user ON public.user_group(id_user);
+CREATE INDEX idx_user_id_group_group ON public.user_group(id_group);
 
 INSERT INTO action (id, name, description) VALUES
 ('11111111-1111-1111-1111-111111111111', 'Create job', 'Create a new job posting'),

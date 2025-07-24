@@ -25,6 +25,11 @@ public class Group {
     @Column
     private String description;
 
-    @Column(name = "id_enterprise", nullable = false)
-    private UUID idEnterprise;
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
+
+    @ManyToOne
+    @JoinColumn(name = "id_enterprise", nullable = false)
+    private Enterprise enterprise;
+
 }
