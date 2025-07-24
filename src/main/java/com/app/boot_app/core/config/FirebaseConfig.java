@@ -16,13 +16,17 @@ public class FirebaseConfig {
 
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
-        InputStream serviceAccount = new ClassPathResource("firebase-service-account.json").getInputStream();
+        if (FirebaseApp.getApps().isEmpty()) {
+            InputStream serviceAccount = new ClassPathResource("firebase-service-account.json").getInputStream();
 
-        FirebaseOptions options = new FirebaseOptions.Builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build();
+            FirebaseOptions options = new FirebaseOptions.Builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build();
 
-        return FirebaseApp.initializeApp(options);
+            return FirebaseApp.initializeApp(options);
+        }
+
+        return FirebaseApp.getInstance();
     }
 
     @Bean
