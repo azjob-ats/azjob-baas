@@ -13,20 +13,20 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "group")
+@Table(name = "tb_group")
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column
+    @Column(name = "description")
     private String description;
 
-    @Column(name = "is_deleted")
-    private boolean isDeleted;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 
     @ManyToOne
     @JoinColumn(name = "id_enterprise", nullable = false)

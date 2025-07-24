@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "users")
+@Table(name = "tb_user")
 public class User {
 
     @Id
@@ -24,10 +24,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 
-    @Column(length = 100)
+    @Column(name = "last_name", length = 100)
     private String lastName;
 
     @Column(unique = true, length = 50)
@@ -36,6 +36,7 @@ public class User {
     @Column(length = 20)
     private String phone;
 
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @Column(length = 20)
@@ -53,7 +54,7 @@ public class User {
     @Column(length = 100)
     private String country;
 
-    @Column(length = 20)
+    @Column(name = "zip_code", length = 20)
     private String zipCode;
 
     private String avatar = "https://www.azjob.com.br/image/user-default.png";
@@ -61,32 +62,33 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String bio;
 
-    @Column(length = 50)
+    @Column(name = "time_zone", length = 50)
     private String timeZone;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    @Column(nullable = false)
+    @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @Column(nullable = false)
+    @Column(name = "is_verified", nullable = false)
     private Boolean isVerified = false;
 
-    @Column(nullable = false)
+    @Column(name = "is_blocked", nullable = false)
     private Boolean isBlocked = false;
 
     @Column(nullable = false, length = 50)
     private String provider;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "id_provider", nullable = false, length = 50)
     private String idProvider;
 
-    @Column(nullable = false)
+    @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 }

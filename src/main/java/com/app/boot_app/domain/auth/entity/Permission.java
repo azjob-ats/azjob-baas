@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "permission")
+@Table(name = "tb_permission")
 public class Permission {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -27,14 +27,14 @@ public class Permission {
     @JoinColumn(name = "id_action", nullable = false)
     private Action action;
 
-    @Column(nullable = false)
+    @Column(name = "allowed", nullable = false)
     private Boolean allowed = false;
 
     @Column(name = "id_enterprise", nullable = false)
     private UUID idEnterprise;
 
-    @Column(name = "is_deleted")
-    private boolean isDeleted;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 
     @ManyToOne
     @JoinColumn(name = "id_group")

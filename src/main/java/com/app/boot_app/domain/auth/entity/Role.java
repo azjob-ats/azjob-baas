@@ -13,19 +13,15 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "role")
+@Table(name = "tb_role")
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @Column
+    @Column(name = "description")
     private String description;
-
-    @ManyToOne
-    @JoinColumn(name = "id_enterprise", nullable = false)
-    private Enterprise enterprise;
 }

@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "pin_codes")
+@Table(name = "tb_pin_code")
 public class PinCode {
 
     @Id
@@ -19,21 +19,21 @@ public class PinCode {
     @JoinColumn(name = "id_user", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 6)
+    @Column(name = "code", nullable = false, length = 6)
     private String code;
 
-    @Column(nullable = false)
+    @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
     @Column(name = "is_used",nullable = false)
     private Boolean isUsed = false;
 
-    @Column(name = "is_deleted")
-    private boolean isDeleted;
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }

@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "recruiter")
+@Table(name = "tb_recruiter")
 public class Recruiter {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -25,4 +25,7 @@ public class Recruiter {
     @OneToOne
     @JoinColumn(name = "id_user", nullable = false)
     private User user;
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 }

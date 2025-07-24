@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "enterprise")
+@Table(name = "tb_enterprise")
 public class Enterprise {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -25,4 +25,7 @@ public class Enterprise {
     @ManyToOne
     @JoinColumn(name = "id_user", nullable = false)
     private User owner;
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
 }
