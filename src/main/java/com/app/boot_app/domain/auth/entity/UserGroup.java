@@ -20,13 +20,13 @@ public class UserGroup {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "id_user", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
     @ManyToOne
-    @JoinColumn(name = "id_group", nullable = false)
+    @JoinColumn(name = "group_id", nullable = false)
     private Group group;
 }

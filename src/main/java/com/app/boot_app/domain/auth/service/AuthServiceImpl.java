@@ -51,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
                 user.setProvider(Constant.EMAIL_AND_PASSWORD_BY_GOOGLE);
                 user.setEmail(signUpRequestDTO.getEmail());
                 user.setPassword("******");
-                user.setIdProvider(userRecord.getUid());
+                user.setProviderId(userRecord.getUid());
                 user.setFirstName(signUpRequestDTO.getFirstName());
                 user.setLastName(signUpRequestDTO.getLastName());
                 user.setUsername(createUsername(signUpRequestDTO.getEmail()));

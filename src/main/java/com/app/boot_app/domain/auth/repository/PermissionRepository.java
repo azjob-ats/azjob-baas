@@ -18,7 +18,7 @@ public interface PermissionRepository extends JpaRepository<Permission, UUID> {
     @Query("SELECT CASE WHEN COUNT(p) > 0 THEN TRUE ELSE FALSE END " +
            "FROM Permission p " +
            "WHERE p.action.id = :actionId " +
-           "AND p.idEnterprise = :enterpriseId " +
+           "AND p.enterprise_id = :enterpriseId " +
            "AND p.allowed = TRUE " +
            "AND p.group.id IN (SELECT ug.group.id FROM UserGroup ug WHERE ug.user.id = :userId)")
     boolean userHasPermissionForAction(

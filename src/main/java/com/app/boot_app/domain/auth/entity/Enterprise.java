@@ -23,7 +23,7 @@ public class Enterprise {
     private String nameEnterprise;
 
     @ManyToOne
-    @JoinColumn(name = "id_user", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "is_deleted", nullable = false)

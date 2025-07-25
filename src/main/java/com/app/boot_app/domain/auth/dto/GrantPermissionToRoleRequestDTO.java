@@ -19,3 +19,4 @@ public class GrantPermissionToRoleRequestDTO {
     @Schema(description = "The unique identifier of the enterprise.", example = "c1d2e3f4-g5h6-7890-1234-567890abcdef")
     private UUID enterpriseId;
 }
+

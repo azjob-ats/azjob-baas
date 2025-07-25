@@ -20,23 +20,23 @@ public class Permission {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "id_role", nullable = false)
+    @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
     @ManyToOne
-    @JoinColumn(name = "id_action", nullable = false)
+    @JoinColumn(name = "action_id", nullable = false)
     private Action action;
 
     @Column(name = "allowed", nullable = false)
     private Boolean allowed = false;
 
-    @Column(name = "id_enterprise", nullable = false)
-    private UUID idEnterprise;
+    @Column(name = "enterprise_id", nullable = false)
+    private UUID enterpriseId; 
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
     @ManyToOne
-    @JoinColumn(name = "id_group")
+    @JoinColumn(name = "group_id")
     private Group group;
 }

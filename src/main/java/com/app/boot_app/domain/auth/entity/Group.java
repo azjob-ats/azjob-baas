@@ -29,7 +29,7 @@ public class Group {
     private boolean isDeleted = false;
 
     @ManyToOne
-    @JoinColumn(name = "id_enterprise", nullable = false)
+    @JoinColumn(name = "enterprise_id", nullable = false)
     private Enterprise enterprise;
 
 }

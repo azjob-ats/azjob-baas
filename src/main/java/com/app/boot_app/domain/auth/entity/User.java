@@ -86,8 +86,8 @@ public class User {
     @Column(nullable = false, length = 50)
     private String provider;
 
-    @Column(name = "id_provider", nullable = false, length = 50)
-    private String idProvider;
+    @Column(name = "provider_id", nullable = false, length = 50)
+    private String providerId;
 
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;

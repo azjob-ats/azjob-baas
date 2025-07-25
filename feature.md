@@ -151,14 +151,14 @@ Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RE
 | Campo         | Tipo   | Obrigatório | Descrição                            | Restrições ou Observações                   |
 |---------------|--------|-------------|--------------------------------------|---------------------------------------------|
 | id            | UUID   | sim         | Identificador da permissão           | Gerado automaticamente                      |
-| id_role       | UUID   | sim         | Papel relacionado                    | FK para `role(id)`                          |
-| id_action     | UUID   | sim         | Ação permitida ou não                | FK para `action(id)`                        |
+| role_id       | UUID   | sim         | Papel relacionado                    | FK para `role(id)`                          |
+| action_id     | UUID   | sim         | Ação permitida ou não                | FK para `action(id)`                        |
 | allowed     | BOOLEAN| sim         | Define se a ação é permitida         | Valor padrão: FALSE                         |
-| id_enterprise | UUID   | sim         | Empresa relacionada à permissão      | FK para `enterprise(id)`                    |
-| id_group      | UUID   | não         | Grupo ao qual se aplica a permissão  | FK para `group(id)`                         |
+| enterprise_id | UUID   | sim         | Empresa relacionada à permissão      | FK para `enterprise(id)`                    |
+| group_id      | UUID   | não         | Grupo ao qual se aplica a permissão  | FK para `group(id)`                         |
 
 - **Regras de validação**:
-  - Campos obrigatórios: `id_role`, `id_action`, `permitido`, `id_enterprise`
+  - Campos obrigatórios: `role_id`, `action_id`, `permitido`, `enterprise_id`
   - Campos não editáveis via API: `id`
 
 - **Relacionamentos**:
@@ -178,10 +178,10 @@ Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RE
 | id            | UUID          | sim         | Identificador do grupo        | Gerado automaticamente             |
 | name          | VARCHAR(100)  | sim         | Nome do grupo                 | Deve ser único por empresa         |
 | description   | TEXT          | não         | Descrição do grupo            |                                    |
-| id_enterprise | UUID          | sim         | Empresa a que o grupo pertence| FK para `enterprise(id)`          |
+| enterprise_id | UUID          | sim         | Empresa a que o grupo pertence| FK para `enterprise(id)`          |
 
 - **Regras de validação**:
-  - Campos obrigatórios: `name`, `id_enterprise`
+  - Campos obrigatórios: `name`, `enterprise_id`
   - Campos não editáveis via API: `id`
   - Outras regras:
     - Nome deve ser único dentro da mesma empresa
@@ -245,10 +245,10 @@ Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RE
 |-----------------|--------------|-------------|-----------------------------------|------------------------------------------|
 | id              | UUID         | sim         | Identificador único               | Gerado automaticamente                   |
 | name_recruiter  | VARCHAR(255) | sim         | Nome do recrutador                |                                          |
-| id_user         | UUID         | sim         | Referência ao usuário             | FK para `users(id)`                      |
+| user_id         | UUID         | sim         | Referência ao usuário             | FK para `users(id)`                      |
 
 - **Regras de validação**:
-  - Campos obrigatórios: `name_recruiter`, `id_user`
+  - Campos obrigatórios: `name_recruiter`, `user_id`
   - Campos não editáveis via API: `id`
 
 - **Relacionamentos**:
@@ -265,10 +265,10 @@ Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RE
 |-----------------|--------------|-------------|-----------------------------------|------------------------------------------|
 | id              | UUID         | sim         | Identificador único da empresa    | Gerado automaticamente                   |
 | name_enterprise | VARCHAR(255) | sim         | Nome da empresa                   | Deve ser único                           |
-| id_user         | UUID         | sim         | Usuário responsável pela empresa  | FK para `users(id)`                      |
+| user_id         | UUID         | sim         | Usuário responsável pela empresa  | FK para `users(id)`                      |
 
 - **Regras de validação**:
-  - Campos obrigatórios: `name_enterprise`, `id_user`
+  - Campos obrigatórios: `name_enterprise`, `user_id`
   - Campos não editáveis via API: `id`
   - Outras regras:
     - O nome da empresa deve ser único
@@ -310,7 +310,7 @@ Implementar a funcionalidade de `{Authentication}` e `{Role}` com operações RE
 | Método | Endpoint                  | Descrição                                              | Autenticado | Body Request (exemplo)                                  |
 | ------ | ------------------------- | ------------------------------------------------------ | ----------- | ------------------------------------------------------- |
 | GET    | `/api/v1/auth/permissions`     | Lista permissões do grupo do usuário autenticado       | sim         | —                                                       |
-| POST   | `/api/v1/auth/permissions`     | Cria nova permissão dentro do grupo atual (admin only) | sim         | `{ id_role: "...", id_action: "...", permitido: true }` |
+| POST   | `/api/v1/auth/permissions`     | Cria nova permissão dentro do grupo atual (admin only) | sim         | `{ role_id: "...", action_id: "...", permitido: true }` |
 | PUT    | `/api/v1/auth/permissions/:id` | Atualiza uma permissão específica                      | sim         | `{ permitido: false }`                                  |
 | DELETE | `/api/v1/auth/permissions/:id` | Remove uma permissão específica                        | sim         | —                                                       |
 

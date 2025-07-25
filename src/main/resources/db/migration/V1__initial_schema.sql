@@ -27,7 +27,7 @@ CREATE TABLE public.tb_user (
     zip_code VARCHAR(20),
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     provider VARCHAR(50) NOT NULL,
-    id_provider VARCHAR(50) NOT NULL,
+    provider_id VARCHAR(50) NOT NULL,
     CONSTRAINT users_pkey PRIMARY KEY (id),
     CONSTRAINT uk_users_email UNIQUE (email),
     CONSTRAINT uk_users_username UNIQUE (username)
@@ -41,10 +41,10 @@ CREATE TABLE public.tb_pin_code (
     email VARCHAR(255) NOT NULL,
     expires_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     is_used BOOLEAN NOT NULL DEFAULT FALSE,
-    id_user UUID NOT NULL,
+    user_id UUID NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT pin_code_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_pin_code_user FOREIGN KEY (id_user) REFERENCES public.tb_user(id)
+    CONSTRAINT fk_pin_code_user FOREIGN KEY (user_id) REFERENCES public.tb_user(id)
 );
 
 -- Tabela de empresas
@@ -52,9 +52,9 @@ CREATE TABLE public.tb_enterprise (
     id UUID NOT NULL DEFAULT uuid_generate_v4(),
     name_enterprise VARCHAR(255) NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    id_user UUID NOT NULL,
+    user_id UUID NOT NULL,
     CONSTRAINT enterprise_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_enterprise_user FOREIGN KEY (id_user) REFERENCES public.tb_user(id)
+    CONSTRAINT fk_enterprise_user FOREIGN KEY (user_id) REFERENCES public.tb_user(id)
 );
 
 -- Tabela de recrutadores
@@ -62,9 +62,9 @@ CREATE TABLE public.tb_recruiter (
     id UUID NOT NULL DEFAULT uuid_generate_v4(),
     name_recruiter VARCHAR(255) NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    id_user UUID NOT NULL,
+    user_id UUID NOT NULL,
     CONSTRAINT recruiter_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_recruiter_user FOREIGN KEY (id_user) REFERENCES public.tb_user(id)
+    CONSTRAINT fk_recruiter_user FOREIGN KEY (user_id) REFERENCES public.tb_user(id)
 );
 
 -- Tabela de ações
@@ -89,50 +89,50 @@ CREATE TABLE public.tb_group (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    id_enterprise UUID NOT NULL,
+    enterprise_id UUID NOT NULL,
     CONSTRAINT group_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_group_enterprise FOREIGN KEY (id_enterprise) REFERENCES public.tb_enterprise(id)
+    CONSTRAINT fk_group_enterprise FOREIGN KEY (enterprise_id) REFERENCES public.tb_enterprise(id)
 );
 
 -- Tabela de permissões
 CREATE TABLE public.tb_permission (
     id UUID NOT NULL DEFAULT uuid_generate_v4(),
-    id_role UUID NOT NULL,
-    id_action UUID NOT NULL,
+    role_id UUID NOT NULL,
+    action_id UUID NOT NULL,
     allowed BOOLEAN NOT NULL DEFAULT FALSE,
-    id_enterprise UUID NOT NULL,
+    enterprise_id UUID NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    id_group UUID,
+    group_id UUID,
     CONSTRAINT permission_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_permission_role FOREIGN KEY (id_role) REFERENCES public.tb_role(id),
-    CONSTRAINT fk_permission_action FOREIGN KEY (id_action) REFERENCES public.tb_action(id),
-    CONSTRAINT fk_permission_enterprise FOREIGN KEY (id_enterprise) REFERENCES public.tb_enterprise(id),
-    CONSTRAINT fk_permission_group FOREIGN KEY (id_group) REFERENCES public.tb_group(id)
+    CONSTRAINT fk_permission_role FOREIGN KEY (role_id) REFERENCES public.tb_role(id),
+    CONSTRAINT fk_permission_action FOREIGN KEY (action_id) REFERENCES public.tb_action(id),
+    CONSTRAINT fk_permission_enterprise FOREIGN KEY (enterprise_id) REFERENCES public.tb_enterprise(id),
+    CONSTRAINT fk_permission_group FOREIGN KEY (group_id) REFERENCES public.tb_group(id)
 );
 
 -- Tabela de user_group
 CREATE TABLE public.tb_user_group (
     id UUID NOT NULL DEFAULT uuid_generate_v4(),
-    id_user UUID NOT NULL,
-    id_group UUID NOT NULL,
+    user_id UUID NOT NULL,
+    group_id UUID NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT user_group_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_user_group_user FOREIGN KEY (id_user) REFERENCES public.tb_user(id),
-    CONSTRAINT fk_user_group_group FOREIGN KEY (id_group) REFERENCES public.tb_group(id)
+    CONSTRAINT fk_user_group_user FOREIGN KEY (user_id) REFERENCES public.tb_user(id),
+    CONSTRAINT fk_user_group_group FOREIGN KEY (group_id) REFERENCES public.tb_group(id)
 );
 
 -- Índices para melhorar performance
-CREATE INDEX idx_pin_code_id_user ON public.tb_pin_code(id_user);
+CREATE INDEX idx_pin_code_user_id ON public.tb_pin_code(user_id);
 CREATE INDEX idx_pin_code_email ON public.tb_pin_code(email);
 CREATE INDEX idx_users_email ON public.tb_user(email);
 CREATE INDEX idx_users_username ON public.tb_user(username);
-CREATE INDEX idx_enterprise_id_user ON public.tb_enterprise(id_user);
-CREATE INDEX idx_recruiter_id_user ON public.tb_recruiter(id_user);
-CREATE INDEX idx_id_group_enterprise ON public.tb_group(id_enterprise);
-CREATE INDEX idx_permission_id_role ON public.tb_permission(id_role);
-CREATE INDEX idx_permission_id_action ON public.tb_permission(id_action);
-CREATE INDEX idx_user_id_group_user ON public.tb_user_group(id_user);
-CREATE INDEX idx_user_id_group_group ON public.tb_user_group(id_group);
+CREATE INDEX idx_enterprise_user_id ON public.tb_enterprise(user_id);
+CREATE INDEX idx_recruiter_user_id ON public.tb_recruiter(user_id);
+CREATE INDEX idx_group_enterprise_id ON public.tb_group(enterprise_id);
+CREATE INDEX idx_permission_role_id ON public.tb_permission(role_id);
+CREATE INDEX idx_permission_action_id ON public.tb_permission(action_id);
+CREATE INDEX idx_user_group_user_id ON public.tb_user_group(user_id);
+CREATE INDEX idx_user_group_group_id ON public.tb_user_group(group_id);
 
 INSERT INTO tb_action (id, name, description) VALUES
 (uuid_generate_v4(), 'Create job', 'Create a new job posting'),
