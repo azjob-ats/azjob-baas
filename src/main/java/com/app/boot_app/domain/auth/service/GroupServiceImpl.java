@@ -21,7 +21,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Group createGroupForEnterprise(String groupName, String description, UUID enterpriseId) {
         Enterprise enterprise = enterpriseRepository.findById(enterpriseId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Enterprise not found"));
+                .orElseThrow(() -> new NotFoundException("Group/createGroupForEnterprise", "Enterprise not found"));
 
         Group group = new Group();
         group.setName(groupName);
@@ -40,7 +40,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void deactivateGroup(UUID groupId, UUID enterpriseId) {
         Group group = groupRepository.findByIdAndEnterpriseId(groupId, enterpriseId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Group not found in this enterprise"));
+                .orElseThrow(() -> new NotFoundException("Group/deactivateGroup", "Group not found in this enterprise"));
 
         group.setDeleted(true);
         groupRepository.save(group);

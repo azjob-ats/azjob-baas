@@ -34,7 +34,7 @@ public class FirebaseRequest extends OncePerRequestFilter {
         try {
             return  firebaseAuth.verifyIdToken(idToken);
         } catch (FirebaseAuthException e) {
-            throw new ConflictException("firebase/verifyIdToken",
+            throw new ConflictException("Firebase/verifyIdToken",
                     "An unexpected error occurred while verify id token the token.");
         }
     }

@@ -28,9 +28,9 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public void grantPermissionToRole(UUID roleId, UUID actionId, UUID enterpriseId) {
         Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Role not found"));
+                .orElseThrow(() -> new NotFoundException("Permission/grantPermissionToRole/role", "Role not found"));
         Action action = actionRepository.findById(actionId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Action not found"));
+                .orElseThrow(() -> new NotFoundException("Permission/grantPermissionToRole/action", "Action not found"));
 
         Permission permission = new Permission();
         permission.setRole(role);
@@ -43,7 +43,7 @@ public class PermissionServiceImpl implements PermissionService {
     public void revokePermissionFromRole(UUID roleId, UUID actionId, UUID enterpriseId) {
         Permission permission = permissionRepository
                 .findByRoleIdAndActionIdAndIdEnterprise(roleId, actionId, enterpriseId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Permission not found"));
+                .orElseThrow(() -> new NotFoundException("Permission/revokePermissionFromRole", "Permission not found"));
         permission.setAllowed(false);
         permissionRepository.save(permission);
     }
@@ -51,12 +51,12 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public void grantPermissionToGroup(UUID groupId, UUID actionId, UUID enterpriseId) {
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Group not found"));
+                .orElseThrow(() -> new NotFoundException("Permission/grantPermissionToGroup/group", "Group not found"));
         Action action = actionRepository.findById(actionId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Action not found"));
+                .orElseThrow(() -> new NotFoundException("Permission/grantPermissionToGroup/action", "Action not found"));
 
         if (!group.getEnterprise().getId().equals(enterpriseId)) {
-            throw new NotFoundException("NOT_FOUND", "Group not found in this enterprise");
+            throw new NotFoundException("Permission/grantPermissionToGroup/equals", "Group not found in this enterprise");
         }
 
         Permission permission = new Permission();
@@ -69,10 +69,10 @@ public class PermissionServiceImpl implements PermissionService {
     public void revokePermissionFromGroup(UUID groupId, UUID actionId, UUID enterpriseId) {
         Permission permission = permissionRepository
                 .findByGroupIdAndActionIdAndIdEnterprise(groupId, actionId, enterpriseId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Permission not found"));
+                .orElseThrow(() -> new NotFoundException("Permission/revokePermissionFromGroup/permission", "Permission not found"));
 
         if (!permission.getGroup().getEnterprise().getId().equals(enterpriseId)) {
-            throw new NotFoundException("NOT_FOUND", "Permission not found in this enterprise");
+            throw new NotFoundException("Permission/revokePermissionFromGroup/equals", "Permission not found in this enterprise");
         }
 
         permission.setDeleted(true);

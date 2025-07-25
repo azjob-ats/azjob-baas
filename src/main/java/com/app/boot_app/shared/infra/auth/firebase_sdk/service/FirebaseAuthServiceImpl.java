@@ -45,7 +45,7 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
             FirebaseAuth.getInstance().updateUser(updateRequest);
 
         } catch (FirebaseAuthException e) {
-            throw new ConflictException("firebase/markEmailAsVerified",
+            throw new ConflictException("Firebase/markEmailAsVerified",
                     "An unexpected error occurred while verifying the email.");
 
         }
@@ -56,7 +56,7 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
             return firebaseAuth.verifyIdToken(token);
 
         } catch (FirebaseAuthException e) {
-            throw new ConflictException("firebase/getUserByToken",
+            throw new ConflictException("Firebase/getUserByToken",
                     "Token must not be null or empty.");
         }
     }
@@ -67,7 +67,7 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
             firebaseAuth.updateUser(new UserRecord.UpdateRequest(userRecord.getUid()).setPassword(newPassword));
 
         } catch (FirebaseAuthException e) {
-            throw new ConflictException("firebase/resetPassword", "Reset token is missing or invalid.");
+            throw new ConflictException("Firebase/resetPassword", "Reset token is missing or invalid.");
         }
     }
 
@@ -78,12 +78,12 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
 
             if (!userRecord.isEmailVerified()) {
                 throw new BadRequestException(
-                        "firebase/isEmailVerified",
+                        "Firebase/isEmailVerified",
                         "email not verified firebase");
             }
 
         } catch (FirebaseAuthException e) {
-            throw new ConflictException("firebase/isEmailVerified",
+            throw new ConflictException("Firebase/isEmailVerified/getUserByEmail",
                     "Email is not verified. Please verify your email to proceed.");
 
         }

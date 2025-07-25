@@ -28,7 +28,7 @@ public class SecurityUtils {
             String username = ((UserDetails) principal).getUsername();
             return userRepository.findByEmail(username)
                     .orElseThrow(() -> new NotFoundException(
-                        "security/getAuthenticatedUser", 
+                        "Security/getAuthenticatedUser", 
                         "security authenticated user not found"));
         } else {
             throw new NotFoundException("security/getAuthenticatedUser", 

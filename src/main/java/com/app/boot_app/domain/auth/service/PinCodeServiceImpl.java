@@ -43,7 +43,7 @@ public class PinCodeServiceImpl implements PinCodeService {
         if (optionalPin.isEmpty()) {
             // PIN não encontrado
             throw new ConflictException(
-                    "auth/wrong-pin-not-found",
+                    "PinCode/validatePinCode/isEmpty",
                     "Pin not found");
         }
 
@@ -52,14 +52,14 @@ public class PinCodeServiceImpl implements PinCodeService {
         if (pinCode.getIsUsed()) {
             // PIN já usado
             throw new ConflictException(
-                    "auth/wrong-pin-used",
+                    "PinCode/validatePinCode/getIsUsed",
                     "Pin already used");
         }
 
         if (pinCode.getExpiresAt().isBefore(LocalDateTime.now())) {
             // PIN expirado
             throw new ConflictException(
-                    "auth/wrong-pin-expired",
+                    "PinCode/validatePinCode/getExpiresAt",
                     "Pin expired");
         }
 

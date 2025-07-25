@@ -41,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
         @Override
         public Boolean signUp(SignUpRequestDTO signUpRequestDTO) {
                 if (userRepository.findByEmail(signUpRequestDTO.getEmail()).isPresent()) {
-                        throw new ConflictException("email-already-exists", "Email already exists");
+                        throw new ConflictException("Auth/signUp", "Email already exists");
                 }
 
                 var userRecord = authAdapter.signUpWithEmailAndPassword(
@@ -74,11 +74,11 @@ public class AuthServiceImpl implements AuthService {
                 authAdapter.isEmailVerified(signInRequestDTO.getEmail());
 
                 User user = userRepository.findByEmail(signInRequestDTO.getEmail())
-                                .orElseThrow(() -> new NotFoundException("user-not-found", "User not found"));
+                                .orElseThrow(() -> new NotFoundException("Auth/signIn", "User not found"));
 
                 if (!user.getIsVerified()) {
                         throw new BadRequestException(
-                                        "auth/email-not-verified",
+                                        "Auth/signIn",
                                         "Email not verified");
                 }
 
@@ -103,7 +103,7 @@ public class AuthServiceImpl implements AuthService {
         @Override
         public Boolean verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO) {
                 User user = userRepository.findByEmail(verifyAccountRequestDTO.getEmail())
-                                .orElseThrow(() -> new NotFoundException("auth/wrong-email", "User not found"));
+                                .orElseThrow(() -> new NotFoundException("Auth/verifyAccount", "User not found"));
 
                 pinCodeService.validatePinCode(
                                 user.getId(),
@@ -121,7 +121,7 @@ public class AuthServiceImpl implements AuthService {
         @Override
         public Boolean sendVerificationCode(String email) {
                 User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new NotFoundException("user-not-found", "User not found"));
+                                .orElseThrow(() -> new NotFoundException("Auth/sendVerificationCode", "User not found"));
 
                 String pinCode = pinCodeService.generateAndSavePinCode(user);
 
@@ -142,7 +142,7 @@ public class AuthServiceImpl implements AuthService {
         @Override
         public Boolean forgotPassword(String email) {
                 userRepository.findByEmail(email)
-                                .orElseThrow(() -> new NotFoundException("user-not-found", "User not found"));
+                                .orElseThrow(() -> new NotFoundException("Auth/forgotPassword", "User not found"));
 
                 sendVerificationCode(email);
                 return true;
@@ -150,7 +150,7 @@ public class AuthServiceImpl implements AuthService {
 
         public String validatePinForUpdatePassword(String code, String email) {
                 User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new NotFoundException("auth/wrong-email", "User not found"));
+                                .orElseThrow(() -> new NotFoundException("Auth/validatePinForUpdatePassword", "User not found"));
 
                 pinCodeService.validatePinCode(
                                 user.getId(),
@@ -186,7 +186,7 @@ public class AuthServiceImpl implements AuthService {
                                         .build();
 
                 } catch (Exception e) {
-                        throw new ConflictException("invalid-refresh-token", "Invalid refresh token: " + e.getMessage());
+                        throw new ConflictException("Auth/refreshToken", "Invalid refresh token: " + e.getMessage());
                 }
         }
 
@@ -194,14 +194,14 @@ public class AuthServiceImpl implements AuthService {
         public UserResponseDTO getUserByToken(String token) {
                 var decodedToken = authAdapter.getUserByToken(token);
                 User user = userRepository.findByEmail(decodedToken.getEmail())
-                                .orElseThrow(() -> new NotFoundException("user-not-found", "User not found"));
+                                .orElseThrow(() -> new NotFoundException("Auth/getUserByToken", "User not found"));
                 return userMapper.toResponse(user);
 
         }
 
         public UserResponseDTO getUserByEmail(String email) {
                 User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new NotFoundException("user-not-found", "User not found"));
+                                .orElseThrow(() -> new NotFoundException("Auth/getUserByEmail", "User not found"));
                 return userMapper.toResponse(user);
         }
 }

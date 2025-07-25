@@ -25,9 +25,9 @@ public class UserGroupServiceImpl implements UserGroupService {
     @Override
     public void addUserToGroup(UUID userId, UUID groupId, UUID enterpriseId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "User not found"));
+                .orElseThrow(() -> new NotFoundException("UserGroup/addUserToGroup/user", "User not found"));
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "Group not found"));
+                .orElseThrow(() -> new NotFoundException("UserGroup/addUserToGroup/group", "Group not found"));
 
         UserGroup userGroup = new UserGroup();
         userGroup.setUser(user);
@@ -38,7 +38,7 @@ public class UserGroupServiceImpl implements UserGroupService {
     @Override
     public void removeUserFromGroup(UUID userId, UUID groupId, UUID enterpriseId) {
         UserGroup userGroup = userGroupRepository.findByUserIdAndGroupId(userId, groupId)
-                .orElseThrow(() -> new NotFoundException("NOT_FOUND", "User not found in this group"));
+                .orElseThrow(() -> new NotFoundException("UserGroup/removeUserFromGroup", "User not found in this group"));
              
         userGroup.setDeleted(true);
         userGroupRepository.save(userGroup);
