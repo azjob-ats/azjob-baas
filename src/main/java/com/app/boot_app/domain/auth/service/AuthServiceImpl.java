@@ -1,11 +1,10 @@
 package com.app.boot_app.domain.auth.service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+import com.app.boot_app.domain.auth.constant.Constant;
 import com.app.boot_app.domain.auth.dto.AuthResponseDTO;
 import com.app.boot_app.domain.auth.dto.RefreshTokenDTO;
 import com.app.boot_app.domain.auth.dto.SignInRequestDTO;
@@ -13,7 +12,6 @@ import com.app.boot_app.domain.auth.dto.SignUpRequestDTO;
 import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 import com.app.boot_app.domain.auth.dto.VerifyAccountRequestDTO;
 import com.app.boot_app.domain.auth.entity.User;
-import com.app.boot_app.domain.auth.enums.ProviderName;
 import com.app.boot_app.domain.auth.mapper.UserMapper;
 import com.app.boot_app.domain.auth.repository.UserRepository;
 import com.app.boot_app.shared.exeception.model.BadRequestException;
@@ -50,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
                                 signUpRequestDTO.getFirstName() + " " + signUpRequestDTO.getLastName());
 
                 User user = new User();
-                user.setProvider(ProviderName.EMAIL_AND_PASSWORD_BY_GOOGLE.name());
+                user.setProvider(Constant.EMAIL_AND_PASSWORD_BY_GOOGLE);
                 user.setEmail(signUpRequestDTO.getEmail());
                 user.setPassword("******");
                 user.setIdProvider(userRecord.getUid());
@@ -121,7 +119,8 @@ public class AuthServiceImpl implements AuthService {
         @Override
         public Boolean sendVerificationCode(String email) {
                 User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new NotFoundException("Auth/sendVerificationCode", "User not found"));
+                                .orElseThrow(() -> new NotFoundException("Auth/sendVerificationCode",
+                                                "User not found"));
 
                 String pinCode = pinCodeService.generateAndSavePinCode(user);
 
@@ -150,7 +149,8 @@ public class AuthServiceImpl implements AuthService {
 
         public String validatePinForUpdatePassword(String code, String email) {
                 User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new NotFoundException("Auth/validatePinForUpdatePassword", "User not found"));
+                                .orElseThrow(() -> new NotFoundException("Auth/validatePinForUpdatePassword",
+                                                "User not found"));
 
                 pinCodeService.validatePinCode(
                                 user.getId(),

@@ -51,7 +51,7 @@ public class AuthController {
     @PostMapping("/sign-in-with-email-and-password")
     public ApiResponse<AuthResponseDTO> signIn(@Valid @RequestBody SignInRequestDTO signInRequestDTO) {
         AuthResponseDTO result = authService.signIn(signInRequestDTO);
-        return Response.ok("user loggedin",result);
+        return Response.ok("user loggedin", result);
     }
 
     @PostMapping("/verify-account")

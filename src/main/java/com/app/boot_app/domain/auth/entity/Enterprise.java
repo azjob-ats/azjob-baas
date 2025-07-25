@@ -24,7 +24,7 @@ public class Enterprise {
 
     @ManyToOne
     @JoinColumn(name = "id_user", nullable = false)
-    private User owner;
+    private User user;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
