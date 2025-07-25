@@ -33,46 +33,46 @@ public class UserResponseDTO {
     @Schema(description = "Gender", example = "male")
     private String gender;
 
-    @Schema(description = "User avatar URL")
+    @Schema(description = "URL of the user's avatar.", example = "https://example.com/avatar.png")
     private String avatar;
 
-    @Schema(description = "Short biography")
+    @Schema(description = "A short biography of the user.", example = "Software engineer specializing in backend development.")
     private String bio;
 
-    @Schema(description = "Full address")
+    @Schema(description = "The user's full address.", example = "123 Main Street, Apt 4B")
     private String address;
 
-    @Schema(description = "City", example = "São Paulo")
+    @Schema(description = "The city where the user resides.", example = "New York")
     private String city;
 
-    @Schema(description = "State", example = "SP")
+    @Schema(description = "The state or province where the user resides.", example = "NY")
     private String state;
 
-    @Schema(description = "Country", example = "Brazil")
+    @Schema(description = "The country where the user resides.", example = "USA")
     private String country;
 
-    @Schema(description = "Zip Code", example = "01000-000")
+    @Schema(description = "The postal code for the user's address.", example = "10001")
     private String zipCode;
 
-    @Schema(description = "Time zone", example = "America/Sao_Paulo")
+    @Schema(description = "The user's time zone.", example = "America/New_York")
     private String timeZone;
 
-    @Schema(description = "Date of account creation")
+    @Schema(description = "Timestamp indicating when the user's account was created.", example = "2023-01-15T10:30:00Z")
     private LocalDateTime createdAt;
 
-    @Schema(description = "Last update timestamp")
+    @Schema(description = "Timestamp indicating the last time the user's account was updated.", example = "2023-10-28T15:45:10Z")
     private LocalDateTime updatedAt;
 
-    @Schema(description = "Indicates if user is active")
+    @Schema(description = "Indicates whether the user's account is active.", example = "true")
     private Boolean isActive;
 
-    @Schema(description = "Indicates if user has verified the account")
+    @Schema(description = "Indicates whether the user's account has been verified.", example = "true")
     private Boolean isVerified;
 
-    @Schema(description = "Indicates if the user is blocked")
+    @Schema(description = "Indicates whether the user's account is blocked.", example = "false")
     private Boolean isBlocked;
 
-    @Schema(description = "")
+    @Schema(description = "The provider of the user's identity (e.g., google, facebook).", example = "google")
     private String idProvider;
 
     @Schema(description = "Unique identifier of the user", example = "a1b2c3d4-e5f6-7890-1234-567890abcdef")
