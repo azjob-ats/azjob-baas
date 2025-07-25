@@ -1,11 +1,9 @@
 package com.app.boot_app.shared.infra.auth.firebase_sdk.service;
 
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -47,8 +45,8 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
             FirebaseAuth.getInstance().updateUser(updateRequest);
 
         } catch (FirebaseAuthException e) {
-            throw new ConflictException("invalid-credentials",
-                    messageSource.getMessage("auth.invalid.credentials", null, LocaleContextHolder.getLocale()));
+            throw new ConflictException("firebase/markEmailAsVerified",
+                    "An unexpected error occurred while verifying the email.");
 
         }
     }
@@ -58,8 +56,8 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
             return firebaseAuth.verifyIdToken(token);
 
         } catch (FirebaseAuthException e) {
-            throw new ConflictException("invalid-credentials",
-                    messageSource.getMessage("auth.invalid.credentials", null, LocaleContextHolder.getLocale()));
+            throw new ConflictException("firebase/getUserByToken",
+                    "Token must not be null or empty.");
         }
     }
 
@@ -69,8 +67,7 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
             firebaseAuth.updateUser(new UserRecord.UpdateRequest(userRecord.getUid()).setPassword(newPassword));
 
         } catch (FirebaseAuthException e) {
-            throw new ConflictException("invalid-or-expired-token", messageSource.getMessage(
-                    "auth.invalid.or.expired.token", new Object[] { e.getMessage() }, LocaleContextHolder.getLocale()));
+            throw new ConflictException("firebase/resetPassword", "Reset token is missing or invalid.");
         }
     }
 
@@ -81,13 +78,13 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
 
             if (!userRecord.isEmailVerified()) {
                 throw new BadRequestException(
-                        "auth/email-not-verified-firebase",
-                        messageSource.getMessage("auth.email.not.verified", null, LocaleContextHolder.getLocale()));
+                        "firebase/isEmailVerified",
+                        "email not verified firebase");
             }
 
         } catch (FirebaseAuthException e) {
-            throw new ConflictException("invalid-credentials",
-                    messageSource.getMessage("auth.invalid.credentials", null, LocaleContextHolder.getLocale()));
+            throw new ConflictException("firebase/isEmailVerified",
+                    "Email is not verified. Please verify your email to proceed.");
 
         }
     }
@@ -101,25 +98,13 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
                 .setEmailVerified(false)
                 .setDisabled(false);
 
-        System.out.println(request.toString());
         try {
             return firebaseAuth.createUser(request);
 
         } catch (FirebaseAuthException e) {
-            throw new InternalServerErrorException("firebase-user-creation-error",
-                    messageSource.getMessage("auth.firebase.user.creation.error", new Object[] { e.getMessage() },
-                            LocaleContextHolder.getLocale()));
-        }
-    }
-
-    public void setCustomUserClaims(String uid) {
-        try {
-            FirebaseAuth.getInstance().setCustomUserClaims("mcGxqujaZJQLlQTUVQyhqyrkcz12", Map.of("group_id", "123", "is_admin", true));
-
-        } catch (FirebaseAuthException e) {
-            throw new InternalServerErrorException("firebase-user-creation-error",
-                    messageSource.getMessage("auth.firebase.user.creation.error", new Object[] { e.getMessage() },
-                            LocaleContextHolder.getLocale()));
+            throw new InternalServerErrorException(
+                    "firebase/signUpWithEmailAndPassword",
+                    "An error occurred while creating the account. Please try again later.");
         }
     }
 
@@ -138,7 +123,6 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-       
         try {
             ResponseEntity<FirebaseSignIn> response = restTemplate.exchange(
                     Constant.FIREBASE_URL + firebaseApiKey,
@@ -150,8 +134,8 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
 
         } catch (HttpClientErrorException e) {
 
-            throw new ConflictException("auth/email-password-invalid",
-                    messageSource.getMessage("auth.email.or.password.invalid", null, LocaleContextHolder.getLocale()));
+            throw new ConflictException("firebase/signInWithEmailAndPassword",
+                    "An unexpected error occurred during sign-in. Please try again later.");
         }
     }
 
@@ -178,9 +162,8 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
         try {
             FirebaseAuth.getInstance().revokeRefreshTokens(uid);
         } catch (FirebaseAuthException e) {
-            throw new ConflictException("auth/revoke-refresh-token-invalid",
-                    messageSource.getMessage("auth.revoke-refresh-token-invalid", null,
-                            LocaleContextHolder.getLocale()));
+            throw new ConflictException("firebase/revokeRefreshTokens",
+                    "An unexpected error occurred while revoking refresh tokens.");
         }
     }
 }

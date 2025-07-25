@@ -27,11 +27,12 @@ public class SecurityUtils {
         if (principal instanceof UserDetails) {
             String username = ((UserDetails) principal).getUsername();
             return userRepository.findByEmail(username)
-                    .orElseThrow(() -> new NotFoundException("authenticated-user-not-found", messageSource.getMessage(
-                            "security.authenticated.user.not.found", null, LocaleContextHolder.getLocale())));
+                    .orElseThrow(() -> new NotFoundException(
+                        "security/getAuthenticatedUser", 
+                        "security authenticated user not found"));
         } else {
-            throw new NotFoundException("no-authenticated-user-found", messageSource
-                    .getMessage("security.no.authenticated.user.found", null, LocaleContextHolder.getLocale()));
+            throw new NotFoundException("security/getAuthenticatedUser", 
+            "An error occurred while retrieving the authenticated user.");
         }
     }
 }

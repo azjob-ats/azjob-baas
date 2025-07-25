@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.app.boot_app.domain.auth.dto.AuthResponseDTO;
@@ -36,7 +34,6 @@ public class AuthServiceImpl implements AuthService {
         private final UserRepository userRepository;
         private final Email emailService;
         private final PinCodeService pinCodeService;
-        private final MessageSource messageSource;
         private final UserMapper userMapper;
         private final AuthAdapter authAdapter;
         private final Jwt jwtService;
@@ -44,9 +41,7 @@ public class AuthServiceImpl implements AuthService {
         @Override
         public Boolean signUp(SignUpRequestDTO signUpRequestDTO) {
                 if (userRepository.findByEmail(signUpRequestDTO.getEmail()).isPresent()) {
-                        throw new ConflictException("email-already-exists",
-                                        messageSource.getMessage("auth.email.exists", null,
-                                                        LocaleContextHolder.getLocale()));
+                        throw new ConflictException("email-already-exists", "Email already exists");
                 }
 
                 var userRecord = authAdapter.signUpWithEmailAndPassword(
@@ -79,15 +74,12 @@ public class AuthServiceImpl implements AuthService {
                 authAdapter.isEmailVerified(signInRequestDTO.getEmail());
 
                 User user = userRepository.findByEmail(signInRequestDTO.getEmail())
-                                .orElseThrow(() -> new NotFoundException("user-not-found",
-                                                messageSource.getMessage("auth.user.not.found", null,
-                                                                LocaleContextHolder.getLocale())));
+                                .orElseThrow(() -> new NotFoundException("user-not-found", "User not found"));
 
                 if (!user.getIsVerified()) {
                         throw new BadRequestException(
                                         "auth/email-not-verified",
-                                        messageSource.getMessage("auth.email.not.verified", null,
-                                                        LocaleContextHolder.getLocale()));
+                                        "Email not verified");
                 }
 
                 FirebaseSignIn res = authAdapter.signInWithEmailAndPassword(
@@ -111,9 +103,7 @@ public class AuthServiceImpl implements AuthService {
         @Override
         public Boolean verifyAccount(VerifyAccountRequestDTO verifyAccountRequestDTO) {
                 User user = userRepository.findByEmail(verifyAccountRequestDTO.getEmail())
-                                .orElseThrow(() -> new NotFoundException("auth/wrong-email",
-                                                messageSource.getMessage("auth.user.not.found", null,
-                                                                LocaleContextHolder.getLocale())));
+                                .orElseThrow(() -> new NotFoundException("auth/wrong-email", "User not found"));
 
                 pinCodeService.validatePinCode(
                                 user.getId(),
@@ -131,19 +121,13 @@ public class AuthServiceImpl implements AuthService {
         @Override
         public Boolean sendVerificationCode(String email) {
                 User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new NotFoundException("user-not-found",
-                                                messageSource.getMessage("auth.user.not.found", null,
-                                                                LocaleContextHolder.getLocale())));
+                                .orElseThrow(() -> new NotFoundException("user-not-found", "User not found"));
 
                 String pinCode = pinCodeService.generateAndSavePinCode(user);
 
-                String emailText = messageSource.getMessage("auth.verification.code.email.body",
-                                new Object[] { user.getFirstName(), pinCode }, LocaleContextHolder.getLocale());
+                String emailText = String.format("Hi %s, your verification code is %s", user.getFirstName(), pinCode);
 
-                emailService.sendEmail(user.getEmail(),
-                                messageSource.getMessage("auth.verification.code.email.subject", null,
-                                                LocaleContextHolder.getLocale()),
-                                emailText);
+                emailService.sendEmail(user.getEmail(), "Verification Code", emailText);
 
                 return true;
         }
@@ -158,9 +142,7 @@ public class AuthServiceImpl implements AuthService {
         @Override
         public Boolean forgotPassword(String email) {
                 userRepository.findByEmail(email)
-                                .orElseThrow(() -> new NotFoundException("user-not-found",
-                                                messageSource.getMessage("auth.user.not.found", null,
-                                                                LocaleContextHolder.getLocale())));
+                                .orElseThrow(() -> new NotFoundException("user-not-found", "User not found"));
 
                 sendVerificationCode(email);
                 return true;
@@ -168,9 +150,7 @@ public class AuthServiceImpl implements AuthService {
 
         public String validatePinForUpdatePassword(String code, String email) {
                 User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new NotFoundException("auth/wrong-email",
-                                                messageSource.getMessage("auth.user.not.found", null,
-                                                                LocaleContextHolder.getLocale())));
+                                .orElseThrow(() -> new NotFoundException("auth/wrong-email", "User not found"));
 
                 pinCodeService.validatePinCode(
                                 user.getId(),
@@ -206,10 +186,7 @@ public class AuthServiceImpl implements AuthService {
                                         .build();
 
                 } catch (Exception e) {
-                        throw new ConflictException("invalid-refresh-token",
-                                        messageSource.getMessage("auth.invalid.refresh.token",
-                                                        new Object[] { e.getMessage() },
-                                                        LocaleContextHolder.getLocale()));
+                        throw new ConflictException("invalid-refresh-token", "Invalid refresh token: " + e.getMessage());
                 }
         }
 
@@ -217,18 +194,14 @@ public class AuthServiceImpl implements AuthService {
         public UserResponseDTO getUserByToken(String token) {
                 var decodedToken = authAdapter.getUserByToken(token);
                 User user = userRepository.findByEmail(decodedToken.getEmail())
-                                .orElseThrow(() -> new NotFoundException("user-not-found",
-                                                messageSource.getMessage("auth.user.not.found", null,
-                                                                LocaleContextHolder.getLocale())));
+                                .orElseThrow(() -> new NotFoundException("user-not-found", "User not found"));
                 return userMapper.toResponse(user);
 
         }
 
         public UserResponseDTO getUserByEmail(String email) {
                 User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new NotFoundException("user-not-found",
-                                                messageSource.getMessage("auth.user.not.found", null,
-                                                                LocaleContextHolder.getLocale())));
+                                .orElseThrow(() -> new NotFoundException("user-not-found", "User not found"));
                 return userMapper.toResponse(user);
         }
 }

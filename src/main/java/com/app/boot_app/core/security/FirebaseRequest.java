@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.app.boot_app.shared.exeception.model.ConflictException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
@@ -33,7 +34,8 @@ public class FirebaseRequest extends OncePerRequestFilter {
         try {
             return  firebaseAuth.verifyIdToken(idToken);
         } catch (FirebaseAuthException e) {
-            throw new RuntimeException("Token inválido ou expirado");
+            throw new ConflictException("firebase/verifyIdToken",
+                    "An unexpected error occurred while verify id token the token.");
         }
     }
 

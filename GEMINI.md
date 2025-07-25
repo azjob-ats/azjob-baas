@@ -219,20 +219,48 @@ src/main/java/com/app/boot_app/
     import com.app.boot_app.domain.auth.dto.UserResponseDTO;
 
     @RestController
-    @RequestMapping("/api/v1/auth/groups")
+    @RequestMapping("/api/v1/auth/group")
     @RequiredArgsConstructor
     public class GroupController {
 
         private final GroupService groupService;
         private final AuthService authService;
-        private final MessageSource messageSource;
         private final FirebaseRequest firebaseRequest;
 
-        @GetMapping
-        public ApiResponse<List<GroupResponseDTO>> findAll(HttpServletRequest request) {
+        @DeleteMapping("user/{userId}/group/{groupId}/enterprise/{enterpriseId}")
+        public ApiResponse<Void> removeUserFromGroup(
+            HttpServletRequest request,
+            @PathVariable UUID userId,
+            @PathVariable UUID groupId,
+            @PathVariable UUID enterpriseId
+        ) {
+
+
             String email = firebaseRequest.getFromRequest(request).getEmail();
             UserResponseDTO user =  authService.getUserByEmail(email);
-            List<GroupResponseDTO> result = groupService.findGroupsByUserId(user.getId());
+
+            /*
+             * Impedir usuários comuns de modificar grupos/empresas de outros
+             * Proteger contra IDOR (acesso direto a IDs)
+            */
+            boolean hasPermission = groupService.userHasPermissionToRemove(
+                authenticatedUser.getId(), groupId, enterpriseId
+            );
+
+            if (!hasPermission) {
+                throw new AccessDeniedException("Você não tem permissão para remover usuários deste grupo.");
+            }
+            
+            groupService.removeUserFromGroup(
+                userId,
+                groupId,
+                enterpriseId
+            );
+
+            return Response.ok(
+                "User removed from group successfully", 
+                null
+            );
         }
     }
 

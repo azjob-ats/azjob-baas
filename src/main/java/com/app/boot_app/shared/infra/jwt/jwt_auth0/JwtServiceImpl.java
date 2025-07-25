@@ -7,6 +7,7 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.app.boot_app.shared.exeception.model.ConflictException;
 import com.app.boot_app.shared.infra.jwt.Jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -38,7 +39,8 @@ public class JwtServiceImpl implements Jwt {
             DecodedJWT jwt = verifier.verify(token);
             return jwt.getSubject();
         } catch (JWTVerificationException e) {
-            throw new RuntimeException("Token inválido ou expirado");
+            throw new ConflictException("Jwt/validateToken",
+                    "An unexpected error occurred while validating the token.");
         }
     }
 

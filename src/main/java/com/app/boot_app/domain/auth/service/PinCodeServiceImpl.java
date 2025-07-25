@@ -1,7 +1,5 @@
 package com.app.boot_app.domain.auth.service;
 
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.app.boot_app.domain.auth.entity.PinCode;
@@ -18,11 +16,9 @@ import java.util.UUID;
 public class PinCodeServiceImpl implements PinCodeService {
 
     private final PinCodeRepository pinCodeRepository;
-    private final MessageSource messageSource;
 
-    public PinCodeServiceImpl(PinCodeRepository pinCodeRepository, MessageSource messageSource) {
+    public PinCodeServiceImpl(PinCodeRepository pinCodeRepository) {
         this.pinCodeRepository = pinCodeRepository;
-        this.messageSource = messageSource;
     }
 
     @Override
@@ -48,7 +44,7 @@ public class PinCodeServiceImpl implements PinCodeService {
             // PIN não encontrado
             throw new ConflictException(
                     "auth/wrong-pin-not-found",
-                    messageSource.getMessage("auth.pin.not-found", null, LocaleContextHolder.getLocale()));
+                    "Pin not found");
         }
 
         PinCode pinCode = optionalPin.get();
@@ -57,14 +53,14 @@ public class PinCodeServiceImpl implements PinCodeService {
             // PIN já usado
             throw new ConflictException(
                     "auth/wrong-pin-used",
-                    messageSource.getMessage("auth.pin.used", null, LocaleContextHolder.getLocale()));
+                    "Pin already used");
         }
 
         if (pinCode.getExpiresAt().isBefore(LocalDateTime.now())) {
             // PIN expirado
             throw new ConflictException(
                     "auth/wrong-pin-expired",
-                    messageSource.getMessage("auth.pin.expired", null, LocaleContextHolder.getLocale()));
+                    "Pin expired");
         }
 
         // Marca como usado e salva
