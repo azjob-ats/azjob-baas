@@ -3,7 +3,6 @@ package com.app.boot_app.shared.infra.auth.firebase_sdk.service;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import com.app.boot_app.shared.exeception.model.BadRequestException;
 import com.app.boot_app.shared.exeception.model.ConflictException;
 import com.app.boot_app.shared.exeception.model.InternalServerErrorException;
+import com.app.boot_app.shared.exeception.model.NotFoundException;
 import com.app.boot_app.shared.infra.auth.AuthAdapter;
 import com.app.boot_app.shared.infra.auth.firebase_sdk.constant.Constant;
 import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseRefresh;
@@ -34,8 +34,19 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
     @Value("${firebase.api-key}")
     private String firebaseApiKey;
 
-    private final MessageSource messageSource;
     private final FirebaseAuth firebaseAuth;
+
+    public boolean checkEmailExists(String email) {
+        try {
+            FirebaseAuth.getInstance().getUserByEmail(email);
+            return true;
+
+        } catch (FirebaseAuthException e) {
+            throw new NotFoundException("Firebase/checkEmailExists",
+                    "Email not found.");
+
+        }
+    }
 
     public void markEmailAsVerified(String email) {
         try {
@@ -133,8 +144,7 @@ public class FirebaseAuthServiceImpl implements AuthAdapter {
             return response.getBody();
 
         } catch (HttpClientErrorException e) {
-
-            throw new ConflictException("firebase/signInWithEmailAndPassword",
+            throw new ConflictException("firebase/signInWithEmailAndPassword/Password",
                     "An unexpected error occurred during sign-in. Please try again later.");
         }
     }

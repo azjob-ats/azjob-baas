@@ -6,6 +6,9 @@ import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.UserRecord;
 
 public interface AuthAdapter {
+
+    boolean checkEmailExists(String email);
+
     void markEmailAsVerified(String email);
 
     FirebaseToken getUserByToken(String token);

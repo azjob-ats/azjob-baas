@@ -69,10 +69,12 @@ public class AuthServiceImpl implements AuthService {
         @Override
         public AuthResponseDTO signIn(SignInRequestDTO signInRequestDTO) {
 
-                authAdapter.isEmailVerified(signInRequestDTO.getEmail());
+                authAdapter.checkEmailExists(signInRequestDTO.getEmail());
 
                 User user = userRepository.findByEmail(signInRequestDTO.getEmail())
-                                .orElseThrow(() -> new NotFoundException("Auth/signIn", "User not found"));
+                                .orElseThrow(() -> new NotFoundException("Auth/signIn/Email", "Email not found"));
+
+                authAdapter.isEmailVerified(signInRequestDTO.getEmail());
 
                 if (!user.getIsVerified()) {
                         throw new BadRequestException(
