@@ -18,7 +18,7 @@ public interface PermissionRepository extends JpaRepository<Permission, UUID> {
             SELECT CASE WHEN COUNT(p) > 0 THEN TRUE ELSE FALSE END
             FROM Permission p
             WHERE p.action.id = :actionId
-            AND p.enterpriseId = :enterpriseId
+            AND p.enterprise.id = :enterpriseId
             AND p.allowed = TRUE
             AND p.group.id IN (SELECT ug.group.id FROM UserGroup ug WHERE ug.user.id = :userId)
             """)

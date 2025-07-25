@@ -5,10 +5,12 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.app.boot_app.domain.auth.entity.Action;
+import com.app.boot_app.domain.auth.entity.Enterprise;
 import com.app.boot_app.domain.auth.entity.Group;
 import com.app.boot_app.domain.auth.entity.Permission;
 import com.app.boot_app.domain.auth.entity.Role;
 import com.app.boot_app.domain.auth.repository.ActionRepository;
+import com.app.boot_app.domain.auth.repository.EnterpriseRepository;
 import com.app.boot_app.domain.auth.repository.GroupRepository;
 import com.app.boot_app.domain.auth.repository.PermissionRepository;
 import com.app.boot_app.domain.auth.repository.RoleRepository;
@@ -24,13 +26,15 @@ public class PermissionServiceImpl implements PermissionService {
     private final RoleRepository roleRepository;
     private final ActionRepository actionRepository;
     private final GroupRepository groupRepository;
+    private final EnterpriseRepository enterpriseRepository;
 
     @Override
     public void grantPermissionToRole(UUID roleId, UUID actionId, UUID enterpriseId, UUID groupId) {
-        System.out.println("-----> "+roleId);
-        System.out.println("-----> "+actionId);
-        System.out.println("-----> "+enterpriseId);
         
+        Enterprise enterprise = enterpriseRepository.findById(enterpriseId)
+                .orElseThrow(() -> new NotFoundException("Permission/grantPermissionToGroup/enterprise", "Enterprise not found"));
+
+
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new NotFoundException("Permission/grantPermissionToGroup/group", "Group not found"));
 
@@ -44,10 +48,8 @@ public class PermissionServiceImpl implements PermissionService {
         permission.setRole(role);
         permission.setAction(action);
         permission.setAllowed(true);
-        permission.setEnterpriseId(enterpriseId);
+        permission.setEnterprise(enterprise);
         permission.setGroup(group);
-
-        System.out.println("-----> "+permission);
         permissionRepository.save(permission);
     }
 

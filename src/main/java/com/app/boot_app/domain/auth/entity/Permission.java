@@ -30,8 +30,9 @@ public class Permission {
     @Column(name = "allowed", nullable = false)
     private Boolean allowed = false;
 
-    @Column(name = "enterprise_id", nullable = false)
-    private UUID enterpriseId; 
+    @ManyToOne
+    @JoinColumn(name = "enterprise_id", nullable = false)
+    private Enterprise enterprise; 
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
