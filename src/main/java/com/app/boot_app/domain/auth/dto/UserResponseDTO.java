@@ -75,6 +75,6 @@ public class UserResponseDTO {
     @Schema(description = "")
     private String idProvider;
 
-    @Schema(description = "")
+    @Schema(description = "Unique identifier of the user", example = "a1b2c3d4-e5f6-7890-1234-567890abcdef")
     private UUID id;
 }
