@@ -3,7 +3,7 @@ package com.app.boot_app.domain.auth.service;
 import java.util.UUID;
 
 public interface PermissionService {
-    void grantPermissionToRole(UUID roleId, UUID actionId, UUID enterpriseId);
+    void grantPermissionToRole(UUID roleId, UUID actionId, UUID enterpriseId, UUID groupId);
 
     void revokePermissionFromRole(UUID roleId, UUID actionId, UUID enterpriseId);
 

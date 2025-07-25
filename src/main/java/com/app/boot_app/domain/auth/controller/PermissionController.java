@@ -23,7 +23,12 @@ public class PermissionController {
 
     @PostMapping("/role/grant")
     public ApiResponse<Void> grantPermissionToRole(@Valid @RequestBody GrantPermissionToRoleRequestDTO requestDTO) {
-        permissionService.grantPermissionToRole(requestDTO.getRoleId(), requestDTO.getActionId(), requestDTO.getEnterpriseId());
+        permissionService.grantPermissionToRole(
+            requestDTO.getRoleId(), 
+            requestDTO.getActionId(), 
+            requestDTO.getEnterpriseId(),
+            requestDTO.getGroupId()
+        );
        
         return Response.ok("Permission granted to role successfully", null);
     }

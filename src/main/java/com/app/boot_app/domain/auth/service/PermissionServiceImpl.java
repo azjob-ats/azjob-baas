@@ -26,9 +26,17 @@ public class PermissionServiceImpl implements PermissionService {
     private final GroupRepository groupRepository;
 
     @Override
-    public void grantPermissionToRole(UUID roleId, UUID actionId, UUID enterpriseId) {
+    public void grantPermissionToRole(UUID roleId, UUID actionId, UUID enterpriseId, UUID groupId) {
+        System.out.println("-----> "+roleId);
+        System.out.println("-----> "+actionId);
+        System.out.println("-----> "+enterpriseId);
+        
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new NotFoundException("Permission/grantPermissionToGroup/group", "Group not found"));
+
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new NotFoundException("Permission/grantPermissionToRole/role", "Role not found"));
+        
         Action action = actionRepository.findById(actionId)
                 .orElseThrow(() -> new NotFoundException("Permission/grantPermissionToRole/action", "Action not found"));
 
@@ -36,13 +44,17 @@ public class PermissionServiceImpl implements PermissionService {
         permission.setRole(role);
         permission.setAction(action);
         permission.setAllowed(true);
+        permission.setEnterpriseId(enterpriseId);
+        permission.setGroup(group);
+
+        System.out.println("-----> "+permission);
         permissionRepository.save(permission);
     }
 
     @Override
     public void revokePermissionFromRole(UUID roleId, UUID actionId, UUID enterpriseId) {
         Permission permission = permissionRepository
-                .findByRoleIdAndActionIdAndIdEnterprise(roleId, actionId, enterpriseId)
+                .findByRoleIdAndActionIdAndEnterpriseId(roleId, actionId, enterpriseId)
                 .orElseThrow(() -> new NotFoundException("Permission/revokePermissionFromRole", "Permission not found"));
         permission.setAllowed(false);
         permissionRepository.save(permission);
@@ -68,7 +80,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public void revokePermissionFromGroup(UUID groupId, UUID actionId, UUID enterpriseId) {
         Permission permission = permissionRepository
-                .findByGroupIdAndActionIdAndIdEnterprise(groupId, actionId, enterpriseId)
+                .findByGroupIdAndActionIdAndEnterpriseId(groupId, actionId, enterpriseId)
                 .orElseThrow(() -> new NotFoundException("Permission/revokePermissionFromGroup/permission", "Permission not found"));
 
         if (!permission.getGroup().getEnterprise().getId().equals(enterpriseId)) {

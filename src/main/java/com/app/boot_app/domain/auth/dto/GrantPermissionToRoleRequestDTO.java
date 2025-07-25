@@ -12,11 +12,18 @@ public class GrantPermissionToRoleRequestDTO {
     @NotNull
     @Schema(description = "The unique identifier of the role.", example = "e1f2g3h4-i5j6-7890-1234-567890abcdef")
     private UUID roleId;
+  
     @NotNull
     @Schema(description = "The unique identifier of the action to be granted.", example = "d1e2f3g4-h5i6-7890-1234-567890abcdef")
     private UUID actionId;
+    
     @NotNull
     @Schema(description = "The unique identifier of the enterprise.", example = "c1d2e3f4-g5h6-7890-1234-567890abcdef")
     private UUID enterpriseId;
+
+
+    @NotNull
+    @Schema(description = "The unique identifier of the group.", example = "c1d2e3f4-g5h6-7890-1234-567890abcdef")
+    private UUID groupId;
 }
 

@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ApiResponse<?>> buildErrorResponse(BaseHttpException ex, HttpStatus status) {
         var error = ApiResponse.Error.builder()
-                .code("GlobalException/buildErrorResponse"+ex.getCode())
+                .code(ex.getCode())
                 .message("An unexpected error occurred. Please try again later.")
                 .build();
 
