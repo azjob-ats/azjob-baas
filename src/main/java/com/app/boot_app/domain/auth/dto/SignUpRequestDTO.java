@@ -16,8 +16,8 @@ public class SignUpRequestDTO {
     private String email;
 
     @NotBlank
-    @Size(min = 8)
-    @Schema(description = "User's password (min 8 characters)", example = "securepassword")
+    @Size(min = 5)
+    @Schema(description = "User's password (min 8 characters)", example = "Senha!")
     private String password;
 
     @NotBlank

@@ -22,6 +22,7 @@ import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseRefresh;
 import com.app.boot_app.shared.infra.auth.firebase_sdk.model.FirebaseSignIn;
 import com.app.boot_app.shared.infra.email.Email;
 import com.app.boot_app.shared.infra.jwt.Jwt;
+import com.app.boot_app.shared.util.PasswordValidator;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,8 +39,13 @@ public class AuthServiceImpl implements AuthService {
 
         @Override
         public Boolean signUp(SignUpRequestDTO signUpRequestDTO) {
+
+                if (!PasswordValidator.isValidPassword(signUpRequestDTO.getPassword())) {
+                        throw new ConflictException("Auth/signUp/Password", "Password does not meet security requirements");
+                }
+
                 if (userRepository.findByEmail(signUpRequestDTO.getEmail()).isPresent()) {
-                        throw new ConflictException("Auth/signUp", "Email already exists");
+                        throw new ConflictException("Auth/signUp/Email", "Email already exists");
                 }
 
                 var userRecord = authAdapter.signUpWithEmailAndPassword(

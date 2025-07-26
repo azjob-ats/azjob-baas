@@ -23,7 +23,7 @@ public class LocaleConfig {
     @Bean
     public LocaleResolver localeResolver() {
         SessionLocaleResolver localeResolver = new SessionLocaleResolver();
-        localeResolver.setDefaultLocale(new Locale("pt", "BR"));
+        localeResolver.setDefaultLocale(Locale.ENGLISH);
         return localeResolver;
     }
 }

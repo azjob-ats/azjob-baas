@@ -6,20 +6,19 @@ import com.app.boot_app.shared.exeception.model.InternalServerErrorException;
 import com.app.boot_app.shared.exeception.model.NotFoundException;
 import com.app.boot_app.shared.response.ApiResponse;
 import com.app.boot_app.shared.response.Response;
-import org.springframework.context.MessageSource;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-
-    private final MessageSource messageSource;
-
-    public GlobalExceptionHandler(MessageSource messageSource) {
-        this.messageSource = messageSource;
-    }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiResponse<?>> handleBadRequest(BadRequestException ex) {
@@ -41,11 +40,16 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleGeneric(Exception ex) {
-        var error = ApiResponse.Error.builder()
-                .code("GlobalException/handleGeneric/Error")
-                .message("An unexpected error occurred. Please try again later.")
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> handleGeneric(MethodArgumentNotValidException  ex) {
+
+            List<String> errors = ex.getBindingResult().getFieldErrors().stream()
+            .map(error -> error.getField() + ": " + getFriendlyMessage(error))
+            .collect(Collectors.toList());
+ 
+            var error = ApiResponse.Error.builder()
+                .code("Validation/FieldError")
+                .message(errors.toString())
                 .build();
 
         var response = Response.error(
@@ -70,5 +74,9 @@ public class GlobalExceptionHandler {
         );
 
         return new ResponseEntity<>(response, status);
+    }
+
+    private String getFriendlyMessage(FieldError error) {
+       return error.getDefaultMessage();
     }
 }
